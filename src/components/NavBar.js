@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const NavBar = ({ isSignedIn, onSignOut }) => {
+const NavBar = ({ isSignedIn, openCreateRoomModal, openJoinRoomModal, onSignOut }) => {
   const navigate = useNavigate();
 
   return (
@@ -10,19 +10,29 @@ const NavBar = ({ isSignedIn, onSignOut }) => {
         style={styles.logoButton}
         onClick={() => navigate("/")}
       >
-        My Website
+        POKER FACE
       </button>
+      { isSignedIn && (
+        <>
+          <button style={styles.button} onClick={openCreateRoomModal}>
+            Create Room
+          </button>
+          <button style={styles.button} onClick={openJoinRoomModal}>
+            Join Room
+          </button>
+        </>
+      )}
       <div style={styles.navItems}>
         {isSignedIn ? (
           <button style={styles.button} onClick={onSignOut}>
-            Sign Out
+            로그아웃
           </button>
         ) : (
           <button
             style={styles.button}
             onClick={() => navigate("/signin")}
           >
-            Sign In
+            로그인
           </button>
         )}
       </div>
@@ -60,6 +70,7 @@ const styles = {
     color: "white",
     cursor: "pointer",
     fontSize: "1rem",
+    fontWeight: "bold",
   },
 };
 

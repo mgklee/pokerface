@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const SignUpPage = () => {
-  const [email, setEmail] = useState("");
+const SignUpPage = ({ onSignIn }) => {
+  const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,32 +12,33 @@ const SignUpPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError("Passwords do not match!");
+      setError("비밀번호가 일치하지 않습니다!");
       return;
     }
     setError(""); // Clear error if passwords match
-    alert(`Account created for: ${email}`);
-    navigate("/signin"); // Redirect to the Sign-In page after successful sign-up
+    alert(`${userId}로 가입했습니다.`);
+    onSignIn(); // Call the callback to indicate the user is signed in
+    navigate("/"); // Redirect to the homepage
   };
 
   return (
     <div className="signup-container">
       <div className="signup-box">
-        <h1 className="signup-title">Sign Up</h1>
+        <h1 className="signup-title">회원가입</h1>
         <form onSubmit={handleSubmit} className="signup-form">
           <div className="form-group">
-            <label htmlFor="email">Email:</label>
+            <label htmlFor="userId">아이디</label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              id="userId"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
               required
               className="form-input"
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Password:</label>
+            <label htmlFor="password">비밀번호</label>
             <input
               type="password"
               id="password"
@@ -48,7 +49,7 @@ const SignUpPage = () => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="confirm-password">Confirm Password:</label>
+            <label htmlFor="confirm-password">비밀번호 확인</label>
             <input
               type="password"
               id="confirm-password"
@@ -60,17 +61,18 @@ const SignUpPage = () => {
           </div>
           {error && <p className="error-message">{error}</p>}
           <button type="submit" className="signup-button">
-            Sign Up
+            가입하기
           </button>
         </form>
         <p className="signup-footer">
-          Already have an account?{" "}
+          계정이 있으면 바로{" "}
           <button
             className="signin-link"
             onClick={() => navigate("/signin")}
           >
-            Sign In
+            로그인
           </button>
+          하세요.
         </p>
       </div>
     </div>

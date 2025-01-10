@@ -2,33 +2,50 @@ import './App.css';
 import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import NavBar from "./components/NavBar";
+import CreateRoomModal from './components/CreateRoomModal';
+import JoinRoomModal from './components/JoinRoomModal';
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
 
 const App = () => {
   // State to track whether the user is signed in
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
+  const [isJoinRoomModalOpen, setIsJoinRoomModalOpen] = useState(false);
 
   const handleSignOut = () => {
     setIsSignedIn(false);
-    alert("You have signed out!");
   };
+
+  const openCreateRoomModal = () => {
+    if (isSignedIn)
+      setIsCreateRoomModalOpen(true);
+  };
+
+  const openJoinRoomModal = () => {
+    if (isSignedIn)
+      setIsJoinRoomModalOpen(true);
+  }
+
+  const closeCreateRoomModal = () => setIsCreateRoomModalOpen(false);
+  const closeJoinRoomModal = () => setIsJoinRoomModalOpen(false);
 
   return (
     <Router>
-      <NavBar isSignedIn={isSignedIn} onSignOut={handleSignOut} />
+      <NavBar
+        isSignedIn={isSignedIn}
+        openCreateRoomModal={openCreateRoomModal}
+        openJoinRoomModal={openJoinRoomModal}
+        onSignOut={handleSignOut}
+      />
       <Routes>
         <Route
           path="/"
           element={
             <div className="homepage">
-              <h1>Welcome to My Homepage!</h1>
-              {isSignedIn && (
-                <div className="room-buttons">
-                  <button className="create-room">Create Room</button>
-                  <button className="join-room">Join Room</button>
-                </div>
-              )}
+              <h1>환영합니다!</h1>
+              {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} />}
+              {isJoinRoomModalOpen && <JoinRoomModal onClose={closeJoinRoomModal} />}
             </div>
           }
         />
@@ -40,7 +57,14 @@ const App = () => {
             />
           }
         />
-        <Route path="/signup" element={<SignUpPage />} />
+        <Route
+          path="/signup"
+          element={
+            <SignUpPage
+              onSignIn={() => setIsSignedIn(true)} // Set the user as signed in when they sign in
+            />
+          }
+        />
       </Routes>
     </Router>
   );

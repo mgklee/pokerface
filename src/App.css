@@ -60,14 +60,16 @@
   background-color: #ff5252;
 }
 
-.signin-container {
+.signin-container,
+.signup-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 90vh;
 }
 
-.signin-box {
+.signin-box,
+.signup-box {
   background: white;
   padding: 30px 40px;
   border-radius: 10px;
@@ -76,13 +78,15 @@
   text-align: center;
 }
 
-.signin-title {
+.signin-title,
+.signup-title {
   font-size: 2rem;
   margin-bottom: 20px;
   color: #4b4b4b;
 }
 
-.signin-form {
+.signin-form,
+.signup-form {
   display: flex;
   flex-direction: column;
 }
@@ -102,6 +106,7 @@
 .form-input {
   width: 100%;
   padding: 10px;
+  box-sizing: border-box;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 1rem;
@@ -133,7 +138,6 @@
 .signin-footer,
 .signup-footer {
   margin-top: 20px;
-  font-size: 0.9rem;
   color: #555;
 }
 
@@ -142,6 +146,7 @@
   background: none;
   border: none;
   color: #6b73ff;
+  font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
   text-decoration: underline;
@@ -187,35 +192,40 @@
   background-color: #007bb5;
 }
 
-.signup-container {
+/* Social Login Buttons */
+.social-login {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-.signup-box {
-  background: white;
-  padding: 30px 40px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 400px;
-  text-align: center;
+.naver-login,
+.kakao-login {
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
-.signup-title {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #4b4b4b;
+.naver-login {
+  background: #03c75a;
+  font-weight: bold;
 }
 
-.signup-form {
-  display: flex;
-  flex-direction: column;
+.naver-login:hover {
+  background: #028944;
 }
 
-.form-input:focus {
-  outline: none;
-  border-color: #6b73ff;
-  box-shadow: 0 0 5px rgba(107, 115, 255, 0.5);
+.kakao-login {
+  background: #ffeb00;
+  color: #3c1e1e;
+  font-weight: bold;
+}
+
+.kakao-login:hover {
+  background: #e5d000;
 }
