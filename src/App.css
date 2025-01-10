@@ -36,3 +36,26 @@
     transform: rotate(360deg);
   }
 }
+
+.homepage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 60px); /* Adjust height considering the NavBar height */
+  text-align: center;
+}
+
+.sign-out-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  background-color: #ff6b6b;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.sign-out-button:hover {
+  background-color: #ff5252;
+}
