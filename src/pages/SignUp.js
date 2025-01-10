@@ -1,22 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const SignInPage = ({ onSignIn }) => {
+const SignUpPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add sign-in validation logic here
-    alert(`Signed in as: ${email}`);
-    onSignIn(); // Call the callback to indicate the user is signed in
-    navigate("/"); // Redirect to the homepage
+    alert(`Account created for: ${email}`);
+    navigate("/signin"); // Redirect to Sign-In page after successful sign-up
   };
 
   return (
-    <div className="signin-page">
-      <h1>Sign In</h1>
+    <div className="signup-page">
+      <h1>Sign Up</h1>
       <form onSubmit={handleSubmit}>
         <label>
           Email:
@@ -36,10 +34,10 @@ const SignInPage = ({ onSignIn }) => {
             required
           />
         </label>
-        <button type="submit">Sign In</button>
+        <button type="submit">Sign Up</button>
       </form>
       <p>
-        Don't have an account?{" "}
+        Already have an account?{" "}
         <button
           style={{
             background: "none",
@@ -48,13 +46,13 @@ const SignInPage = ({ onSignIn }) => {
             textDecoration: "underline",
             cursor: "pointer",
           }}
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/signin")}
         >
-          Sign Up
+          Sign In
         </button>
       </p>
     </div>
   );
 };
 
-export default SignInPage;
+export default SignUpPage;
