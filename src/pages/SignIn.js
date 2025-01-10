@@ -52,6 +52,12 @@ const SignInPage = ({ onSignIn }) => {
         >
           Sign Up
         </button>
+        <button className="naver-login">
+          naver login
+        </button>
+        <button className="kakao-login">
+          kakao login
+        </button>
       </p>
     </div>
   );
