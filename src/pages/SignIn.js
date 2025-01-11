@@ -10,9 +10,11 @@ const SignInPage = ({ onSignIn }) => {
     e.preventDefault();
     // Add sign-in validation logic here
     // alert(`Signed in as ID: ${userId}`);
-    onSignIn(userId); // Call the callback to indicate the user is signed in
+    onSignIn(userId, "닉네임 DB에서 가져오기"); // Call the callback to indicate the user is signed in
     navigate("/"); // Redirect to the homepage
   };
+  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=6c7826890b2dfbb3924ce9491ac3a492&redirect_uri=http://localhost:5001/auth/kakao/callback&response_type=code`;
+  const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?client_id=UTeD3wg5vzrVdKMYkLga&redirect_uri=http://localhost:5001/auth/naver/callback&response_type=code`;
 
   return (
     <div className="signin-container">
@@ -55,8 +57,14 @@ const SignInPage = ({ onSignIn }) => {
           </button>
         </p>
         <div className="social-login">
-          <button className="naver-login">네이버로 로그인하기</button>
-          <button className="kakao-login">카카오로 로그인하기</button>
+          <button className="naver-login"
+            onClick = {() => (window.location.href = NAVER_AUTH_URL)}
+          >
+            네이버로 로그인하기</button>
+          <button className="kakao-login"
+            onClick = {() => (window.location.href = KAKAO_AUTH_URL)}
+          >
+            카카오로 로그인하기</button>
         </div>
       </div>
     </div>

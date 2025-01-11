@@ -6,14 +6,23 @@ import JoinRoomModal from './components/JoinRoomModal';
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
 import RoomPage from './pages/Room';
+import KakaoCallback from "./Login/KakaoCallback";
+import NaverCallback from "./Login/NaverCallback";
 import './App.css';
 
 const App = () => {
   // State to track whether the user is signed in
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userId, setUserId] = useState("");
+  const [nickname, setNickname] = useState("");
   const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
   const [isJoinRoomModalOpen, setIsJoinRoomModalOpen] = useState(false);
+
+  const onSignIn = (id, nickname) => {
+    setIsSignedIn(true);
+    setUserId(id);
+    setNickname(nickname);
+  }
 
   const openCreateRoomModal = () => setIsCreateRoomModalOpen(true);
   const closeCreateRoomModal = () => setIsCreateRoomModalOpen(false);
@@ -36,7 +45,8 @@ const App = () => {
             <div className="homepage">
               {isSignedIn ? (
                 <div className="user-info">
-                  <h1>안녕하세요, {userId}님!</h1>
+                  <h1>안녕하세요, {nickname}님!</h1>
+                  <h1>아이디: {userId}</h1>
                 </div>
               ) : (
                 <h1>환영합니다!</h1>
@@ -47,7 +57,19 @@ const App = () => {
         <Route
           path="/signin"
           element={
-            <SignInPage
+            <SignInPage onSignIn={onSignIn}/>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <SignUpPage onSignIn={onSignIn}/>
+          }
+        />
+        <Route
+          path="/auth/kakao/callback"
+          element={
+            <KakaoCallback
               onSignIn={(id) => {
                 setIsSignedIn(true);
                 setUserId(id);
@@ -56,10 +78,13 @@ const App = () => {
           }
         />
         <Route
-          path="/signup"
+          path="/auth/naver/callback"
           element={
-            <SignUpPage
-              onSignIn={() => setIsSignedIn(true)} // Set the user as signed in when they sign up
+            <NaverCallback
+              onSignIn={(id) => {
+                setIsSignedIn(true);
+                setUserId(id);
+              }}
             />
           }
         />
