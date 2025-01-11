@@ -1,11 +1,12 @@
-import './App.css';
 import React, { useState } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import CreateRoomModal from './components/CreateRoomModal';
 import JoinRoomModal from './components/JoinRoomModal';
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
+import RoomPage from './pages/Room';
+import './App.css';
 
 const App = () => {
   // State to track whether the user is signed in
@@ -40,8 +41,6 @@ const App = () => {
               ) : (
                 <h1>환영합니다!</h1>
               )}
-              {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} />}
-              {isJoinRoomModalOpen && <JoinRoomModal onClose={closeJoinRoomModal} />}
             </div>
           }
         />
@@ -64,7 +63,10 @@ const App = () => {
             />
           }
         />
+        <Route path="/room/:roomId" element={<RoomPage />} />
       </Routes>
+      {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} />}
+      {isJoinRoomModalOpen && <JoinRoomModal onClose={closeJoinRoomModal} />}
     </Router>
   );
 };

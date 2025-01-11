@@ -1,12 +1,15 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import './CreateRoomModal.css';
 
 const CreateRoomModal = ({ onClose }) => {
   const [participants, setParticipants] = useState(1);
+  const navigate = useNavigate();
 
   const handleCreateRoom = () => {
     alert(`Creating a room for ${participants} participant(s).`);
-    onClose(); // Close the modal after submission
+    onClose(); // Close the modal after navigation
+    navigate(`/room/${participants}`);
   };
 
   return (
