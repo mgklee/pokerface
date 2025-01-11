@@ -163,43 +163,6 @@
   margin-bottom: 15px;
 }
 
-.room-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.create-room,
-.join-room {
-  padding: 10px 20px;
-  font-size: 1rem;
-  color: white;
-  background-color: #4caf50;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.create-room:hover {
-  background-color: #45a049;
-}
-
-.join-room {
-  background-color: #008cba;
-}
-
-.join-room:hover {
-  background-color: #007bb5;
-}
-
-/* Social Login Buttons */
-.social-login {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
-}
-
 .naver-login,
 .kakao-login {
   padding: 10px 20px;

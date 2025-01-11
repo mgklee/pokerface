@@ -10,7 +10,7 @@ const SignInPage = ({ onSignIn }) => {
     e.preventDefault();
     // Add sign-in validation logic here
     // alert(`Signed in as ID: ${userId}`);
-    onSignIn(); // Call the callback to indicate the user is signed in
+    onSignIn(userId); // Call the callback to indicate the user is signed in
     navigate("/"); // Redirect to the homepage
   };
 

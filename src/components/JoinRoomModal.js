@@ -12,20 +12,20 @@ const JoinRoomModal = ({ onClose }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Join Room</h2>
+        <h2>참가하기</h2>
         <input
           type="text"
-          placeholder="Enter Room Code"
+          placeholder="방 코드를 입력하세요"
           value={roomCode}
           onChange={(e) => setRoomCode(e.target.value)}
           className="modal-input"
         />
         <div className="modal-buttons">
           <button onClick={handleJoinRoom} className="modal-button join-button">
-            Join
+            확인
           </button>
           <button onClick={onClose} className="modal-button cancel-button">
-            Cancel
+            취소
           </button>
         </div>
       </div>

@@ -1,8 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const NavBar = ({ isSignedIn, openCreateRoomModal, openJoinRoomModal, onSignOut }) => {
+const NavBar = ({ isSignedIn, setIsSignedIn, openCreateRoomModal, openJoinRoomModal }) => {
   const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    setIsSignedIn(false); // Update the signed-in state
+    navigate("/"); // Redirect to the homepage
+  };
 
   return (
     <nav style={styles.nav}>
@@ -12,19 +17,19 @@ const NavBar = ({ isSignedIn, openCreateRoomModal, openJoinRoomModal, onSignOut 
       >
         POKER FACE
       </button>
-      { isSignedIn && (
+      {isSignedIn && (
         <>
           <button style={styles.button} onClick={openCreateRoomModal}>
-            Create Room
+            방 만들기
           </button>
           <button style={styles.button} onClick={openJoinRoomModal}>
-            Join Room
+            참가하기
           </button>
         </>
       )}
       <div style={styles.navItems}>
         {isSignedIn ? (
-          <button style={styles.button} onClick={onSignOut}>
+          <button style={styles.button} onClick={handleSignOut}>
             로그아웃
           </button>
         ) : (

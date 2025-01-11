@@ -10,40 +10,36 @@ import SignUpPage from "./pages/SignUp";
 const App = () => {
   // State to track whether the user is signed in
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [userId, setUserId] = useState("");
   const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
   const [isJoinRoomModalOpen, setIsJoinRoomModalOpen] = useState(false);
 
-  const handleSignOut = () => {
-    setIsSignedIn(false);
-  };
-
-  const openCreateRoomModal = () => {
-    if (isSignedIn)
-      setIsCreateRoomModalOpen(true);
-  };
-
-  const openJoinRoomModal = () => {
-    if (isSignedIn)
-      setIsJoinRoomModalOpen(true);
-  }
-
+  const openCreateRoomModal = () => setIsCreateRoomModalOpen(true);
   const closeCreateRoomModal = () => setIsCreateRoomModalOpen(false);
+
+  const openJoinRoomModal = () => setIsJoinRoomModalOpen(true);
   const closeJoinRoomModal = () => setIsJoinRoomModalOpen(false);
 
   return (
     <Router>
       <NavBar
         isSignedIn={isSignedIn}
+        setIsSignedIn={setIsSignedIn}
         openCreateRoomModal={openCreateRoomModal}
         openJoinRoomModal={openJoinRoomModal}
-        onSignOut={handleSignOut}
       />
       <Routes>
         <Route
           path="/"
           element={
             <div className="homepage">
-              <h1>환영합니다!</h1>
+              {isSignedIn ? (
+                <div className="user-info">
+                  <h1>안녕하세요, {userId}님!</h1>
+                </div>
+              ) : (
+                <h1>환영합니다!</h1>
+              )}
               {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} />}
               {isJoinRoomModalOpen && <JoinRoomModal onClose={closeJoinRoomModal} />}
             </div>
@@ -53,7 +49,10 @@ const App = () => {
           path="/signin"
           element={
             <SignInPage
-              onSignIn={() => setIsSignedIn(true)} // Set the user as signed in when they sign in
+              onSignIn={(id) => {
+                setIsSignedIn(true);
+                setUserId(id);
+              }}
             />
           }
         />
@@ -61,7 +60,7 @@ const App = () => {
           path="/signup"
           element={
             <SignUpPage
-              onSignIn={() => setIsSignedIn(true)} // Set the user as signed in when they sign in
+              onSignIn={() => setIsSignedIn(true)} // Set the user as signed in when they sign up
             />
           }
         />

@@ -12,8 +12,8 @@ const CreateRoomModal = ({ onClose }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Create Room</h2>
-        <label htmlFor="participants">Number of Participants:</label>
+        <h2>방 만들기</h2>
+        <label htmlFor="participants">참가자 수</label>
         <select
           id="participants"
           value={participants}
@@ -27,10 +27,10 @@ const CreateRoomModal = ({ onClose }) => {
         </select>
         <div className="modal-buttons">
           <button onClick={handleCreateRoom} className="modal-button create-button">
-            Create
+            만들기
           </button>
           <button onClick={onClose} className="modal-button cancel-button">
-            Cancel
+            취소
           </button>
         </div>
       </div>
