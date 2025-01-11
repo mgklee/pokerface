@@ -12,7 +12,8 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
     "react-scripts": "^5.0.1",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^4.2.4",
+    "ws": "^8.18.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -37,11 +38,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "webpack": "^5.97.1",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-private-property-in-object": "^7.25.9"
