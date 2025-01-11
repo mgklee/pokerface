@@ -19,7 +19,7 @@ const SignUpPage = ({ onSignIn }) => {
 
     // 백엔드에서 회원가입 처리 (시작)
     try {
-      const response = await fetch("http://localhost:5001/auth/signup", {
+      const response = await fetch("http://172.10.7.34:5001/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

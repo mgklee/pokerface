@@ -121,7 +121,7 @@ router.get("/kakao/callback", async (req, res) => {
       }
       console.log("Kakao로 로그인되었습니다.");
       res.redirect(
-        `http://localhost:3000/auth/kakao/callback?token=${accessToken}&userId=${user._id}`
+        `http://172.10.7.34:3000/auth/kakao/callback?token=${accessToken}&userId=${user._id}`
       );
       // res.json({ message: "Login successful", token: accessToken, user });
     } catch (error) {
@@ -174,7 +174,7 @@ router.get("/naver/callback", async (req, res) => {
       // 4. 로그인 성공 (세션 또는 JWT 발급)
       console.log("Naver로 로그인되었습니다.");
       res.redirect(
-        `http://localhost:3000/auth/naver/callback?token=${accessToken}&userId=${user._id}`
+        `http://172.10.7.34:3000/auth/naver/callback?token=${accessToken}&userId=${user._id}`
       );
       // res.json({ message: "Login successful", user });
     } catch (error) {
