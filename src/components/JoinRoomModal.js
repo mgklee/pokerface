@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import './JoinRoomModal.css';
+import "./JoinRoomModal.css";
 
 const JoinRoomModal = ({ onClose }) => {
   const [roomCode, setRoomCode] = useState("");

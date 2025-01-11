@@ -1,17 +1,20 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
+
 import NavBar from "./components/NavBar";
-import CreateRoomModal from './components/CreateRoomModal';
-import JoinRoomModal from './components/JoinRoomModal';
-import SignInPage from "./pages/SignIn";
-import SignUpPage from "./pages/SignUp";
-import RoomPage from './pages/Room';
+import CreateRoomModal from "./components/CreateRoomModal";
+import JoinRoomModal from "./components/JoinRoomModal";
+import EmotionRecognition from "./components/EmotionRecognition";
+
 import KakaoCallback from "./Login/KakaoCallback";
 import NaverCallback from "./Login/NaverCallback";
-import './App.css';
+
+import SignInPage from "./pages/SignIn";
+import SignUpPage from "./pages/SignUp";
+import RoomPage from "./pages/Room";
 
 const App = () => {
-  // State to track whether the user is signed in
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userId, setUserId] = useState("");
   const [nickname, setNickname] = useState("");
@@ -49,8 +52,9 @@ const App = () => {
                   <h1>아이디: {userId}</h1>
                 </div>
               ) : (
-                <h1>환영합니다!</h1>
+                <h1>어서 오세요! 현재 당신의 표정은...</h1>
               )}
+              <EmotionRecognition />
             </div>
           }
         />
