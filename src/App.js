@@ -69,23 +69,14 @@ const App = () => {
         <Route
           path="/auth/kakao/callback"
           element={
-            <KakaoCallback
-              onSignIn={(id) => {
-                setIsSignedIn(true);
-                setUserId(id);
-              }}
-            />
+            <KakaoCallback  onSignIn={onSignIn}/>
           }
         />
         <Route
           path="/auth/naver/callback"
           element={
             <NaverCallback
-              onSignIn={(id) => {
-                setIsSignedIn(true);
-                setUserId(id);
-              }}
-            />
+              onSignIn={onSignIn}/>
           }
         />
         <Route path="/room/:roomId" element={<RoomPage />} />
