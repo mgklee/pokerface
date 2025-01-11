@@ -1,77 +1,107 @@
-import React, { useState, useEffect } from "react";
+import React, {useEffect, useRef} from "react";
 import { useParams } from "react-router-dom";
 
 const RoomPage = () => {
   const { roomId } = useParams();
-  const [videos, setVideos] = useState([]);
-  const [streams, setStreams] = useState([]);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerConnection = useRef(null);
+  const socket = useRef(null);
+  const isSocketConnected = useRef(false);
 
   useEffect(() => {
-    // Simulate webcam videos for the number of participants
-    const participantCount = parseInt(roomId, 10);
-    const videoStreams = Array.from({ length: participantCount }, (_, index) => ({
-      id: index + 1,
-      name: `Participant ${index + 1}`,
-    }));
-    setVideos(videoStreams);
+    // WebSocket 연결
+    socket.current = new WebSocket("ws://172.10.7.34:8080");
 
-    // Start videos for each participant
-    const newStreams = [];
-    videoStreams.forEach(async (video) => {
-      const stream = await startVideo(video.id);
-      if (stream) newStreams.push(stream);
-    });
-    setStreams(newStreams);
-
-    return () => {
-      // Stop all streams when component unmounts
-      newStreams.forEach((stream) => {
-        stream.getTracks().forEach((track) => track.stop());
+    // WebSocket 연결 상태 확인
+    socket.current.onopen = () => {
+      console.log("WebSocket connected!");
+      isSocketConnected.current = true;
+      // WebRTC 연결 시작 (WebSocket이 열렸을 때)
+      peerConnection.current.createOffer().then((offer) => {
+        peerConnection.current.setLocalDescription(offer);
+        if (socket.current.readyState === WebSocket.OPEN) {
+          socket.current.send(JSON.stringify({ type: "offer", offer }));
+        } else {
+          console.error("WebSocket is not open. Unable to send message.");
+        }
       });
     };
-  }, [roomId]);
 
-  const startVideo = async (id) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const videoElement = document.getElementById(`video-${id}`);
-      if (videoElement) {
-        videoElement.srcObject = stream;
-        videoElement.onloadedmetadata = () => {
-          videoElement.play();
-        };
+    socket.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    // RTCPeerConnection 초기화
+    peerConnection.current = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    });
+
+    // 로컬 비디오 스트림 설정
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+        stream.getTracks().forEach((track) => {
+          peerConnection.current.addTrack(track, stream);
+        });
+      })
+      .catch((error) => console.error("Error accessing media devices:", error));
+
+    // ICE 후보자 교환
+    peerConnection.current.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.current.send(
+          JSON.stringify({ type: "ice-candidate", candidate: event.candidate })
+        );
       }
-      return stream;
-    } catch (error) {
-      console.error(`Error starting video for participant ${id}:`, error);
-      return null;
-    }
-  };
+    };
 
-  const getGridStyle = () => {
-    const count = videos.length;
-    if (count === 1) return { gridTemplateColumns: "1fr" };
-    if (count === 2) return { gridTemplateColumns: "1fr 1fr" };
-    if (count <= 4) return { gridTemplateColumns: "1fr 1fr" };
-    return { gridTemplateColumns: "1fr 1fr 1fr" }; // Adjust for larger counts
-  };
+    // 원격 스트림 설정
+    peerConnection.current.ontrack = (event) => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    // WebSocket 메시지 처리
+    socket.current.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === "offer") {
+        peerConnection.current
+          .setRemoteDescription(new RTCSessionDescription(message.offer))
+          .then(() => peerConnection.current.createAnswer())
+          .then((answer) => {
+            peerConnection.current.setLocalDescription(answer);
+            socket.current.send(JSON.stringify({ type: "answer", answer }));
+          });
+      } else if (message.type === "answer") {
+        peerConnection.current.setRemoteDescription(
+          new RTCSessionDescription(message.answer)
+        );
+      } else if (message.type === "ice-candidate") {
+        peerConnection.current.addIceCandidate(
+          new RTCIceCandidate(message.candidate)
+        );
+      }
+    };
+
+    // Cleanup: WebSocket과 PeerConnection 정리
+    return () => {
+      if (socket.current) socket.current.close();
+      if (peerConnection.current) peerConnection.current.close();
+    };
+  }, []);
+
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Room {roomId}</h1>
-      <div style={{ ...styles.videoGrid, ...getGridStyle() }}>
-        {videos.map((video) => (
-          <div key={video.id} style={styles.videoCard}>
-            <video
-              id={`video-${video.id}`}
-              style={styles.video}
-              autoPlay
-              playsInline
-            ></video>
-            <p style={styles.participantName}>{video.name}</p>
-          </div>
-        ))}
-      </div>
+    <div className="room-page">
+      <h1>Welcome to Room {roomId}</h1>
+      <p>Number of participants: {roomId}</p>
+      <video ref = {localVideoRef} autoPlay muted></video>
+      <video ref = {remoteVideoRef} autoPlay></video>
     </div>
   );
 };

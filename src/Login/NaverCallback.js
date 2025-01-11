@@ -9,12 +9,14 @@ const NaverCallback = ({ onSignIn }) => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     const userId = urlParams.get("userId");
+    const name = urlParams.get("name");
 
     if (token) {
       localStorage.setItem("authToken", token); // 토큰 저장
       localStorage.setItem("userId", userId); // 사용자 ID 저장
+      localStorage.setItem("name", name);
       if (onSignIn) {
-        onSignIn(); // 로그인 상태 업데이트
+        onSignIn(userId, name); // 로그인 상태 업데이트
       }
       navigate("/"); // 홈 화면으로 이동
     } else {

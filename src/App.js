@@ -49,7 +49,7 @@ const App = () => {
               {isSignedIn ? (
                 <div className="user-info">
                   <h1>안녕하세요, {nickname}님!</h1>
-                  <h1>아이디: {userId}</h1>
+                  {/* <h1>아이디: {userId}</h1> */}
                 </div>
               ) : (
                 <h1>어서 오세요! 현재 당신의 표정은...</h1>
@@ -73,23 +73,14 @@ const App = () => {
         <Route
           path="/auth/kakao/callback"
           element={
-            <KakaoCallback
-              onSignIn={(id) => {
-                setIsSignedIn(true);
-                setUserId(id);
-              }}
-            />
+            <KakaoCallback  onSignIn={onSignIn}/>
           }
         />
         <Route
           path="/auth/naver/callback"
           element={
             <NaverCallback
-              onSignIn={(id) => {
-                setIsSignedIn(true);
-                setUserId(id);
-              }}
-            />
+              onSignIn={onSignIn}/>
           }
         />
         <Route path="/room/:roomId" element={<RoomPage />} />

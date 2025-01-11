@@ -9,16 +9,42 @@ const SignUpPage = ({ onSignIn }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("비밀번호가 일치하지 않습니다!");
       return;
     }
     setError(""); // Clear error if passwords match
+
+    // 백엔드에서 회원가입 처리 (시작)
+    try {
+      const response = await fetch("http://172.10.7.34:5001/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: userId,
+          name: nickname,
+          password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        setError(data.message || "회원가입 실패");
+        return;
+      }
+
     alert(`${userId}로 가입했습니다. 닉네임: ${nickname}`);
     onSignIn(userId, nickname); // Call the callback to indicate the user is signed in
     navigate("/"); // Redirect to the homepage
+    // 백엔드에서 회원가입 처리 (끝)
+
+    } catch (error) {
+      console.error("Sign-up error:", error);
+      setError("회원가입 중 문제가 발생했습니다.");
+    }
   };
 
   return (

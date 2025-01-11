@@ -19,6 +19,56 @@ router.get("/validate-token", (req, res) => {
   });
 });
 
+router.post("/signin", async (req, res) => {
+  const { providerId, password } = req.body;
+
+  try {
+    let user1 = await User.findOne({ providerId});
+    if (!user1) { // 사용자가 없는 경우
+      return res.status(400).json({ message: "사용자가 존재하지 않습니다." });
+    }
+
+    let user2 = await User.findOne({ providerId, password });
+    if (!user2) { // 비밀번호가 틀린 경우
+      return res.status(400).json({ message: "비밀번호가 틀렸습니다." });
+    }
+
+    res.status(200).json({ message: "로그인 성공!", user2 });
+  } catch (error) {
+    console.error("Sign-in error:", error);
+    res.status(500).json({ message: "Sign-in failed" });
+  }
+});
+
+
+router.post("/signup", async (req, res) => {
+  console.log("Request Body:", req.body); // req.body 확인
+  const { providerId, name, password } = req.body;
+
+  try {
+    let user = await User.findOne({ providerId });
+
+    if (user) { // 사용자가 이미 존재할 경우
+      return res.status(400).json({ message: "이미 존재하는 아이디입니다." });
+    }
+
+    if (!user) {  // 사용자가 없다면 새로 저장
+      user = new User({
+        provider: "none",
+        providerId,
+        name,
+        password,
+      });
+      await user.save();
+    }
+
+    res.status(200).json({ message: "Sign-up successful", user });
+  } catch (error) {
+    console.error("Sign-up error:", error);
+    res.status(500).json({ message: "Sign-up failed" });
+  }
+});
+
 // 카카오 로그인 콜백
 router.get("/kakao/callback", async (req, res) => {
     const { code } = req.query;
@@ -70,15 +120,17 @@ router.get("/kakao/callback", async (req, res) => {
         await user.save();
       }
       console.log("Kakao로 로그인되었습니다.");
+      console.log("Access Token:", accessToken);
+      console.log("User ID:", user._id);
       res.redirect(
-        `http://localhost:3000/auth/kakao/callback?token=${accessToken}&userId=${user._id}`
+        `http://172.10.7.34:3000/auth/kakao/callback?token=${accessToken}&userId=${user._id}&name=${user.name}`
       );
       // res.json({ message: "Login successful", token: accessToken, user });
     } catch (error) {
     console.error("Kakao login error:", error.response?.data || error.message); // 에러 메시지 출력
     res.status(500).json({ message: "Kakao login failed", error: error.response?.data });
     }
-  });
+  }); 
 
 // 네이버 로그인 콜백
 router.get("/naver/callback", async (req, res) => {
@@ -124,7 +176,7 @@ router.get("/naver/callback", async (req, res) => {
       // 4. 로그인 성공 (세션 또는 JWT 발급)
       console.log("Naver로 로그인되었습니다.");
       res.redirect(
-        `http://localhost:3000/auth/naver/callback?token=${accessToken}&userId=${user._id}`
+        `http://172.10.7.34:3000/auth/naver/callback?token=${accessToken}&userId=${user._id}&name=${user.name}`
       );
       // res.json({ message: "Login successful", user });
     } catch (error) {

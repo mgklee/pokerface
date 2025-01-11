@@ -4,17 +4,43 @@ import { useNavigate } from "react-router-dom";
 const SignInPage = ({ onSignIn }) => {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  // 백엔드에서 로그인 처리 (시작)
+  const handleSubmit = async(e) => {
     e.preventDefault();
     // Add sign-in validation logic here
-    // alert(`Signed in as ID: ${userId}`);
-    onSignIn(userId, "닉네임 DB에서 가져오기"); // Call the callback to indicate the user is signed in
-    navigate("/"); // Redirect to the homepage
+    
+    try {
+      const response = await fetch("http://172.10.7.34:5001/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: userId,
+          password: password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        setError(data.message || "로그인 실패");
+        return;
+      }
+
+      // alert(`Signed in as ID: ${userId}`);
+      onSignIn(userId, data.user2.name); // Call the callback to indicate the user is signed in
+      navigate("/"); // Redirect to the homepage
+      // 백엔드에서 로그인 처리 (끝)
+
+    } catch (error) {
+      console.error("Sign-in error:", error);
+      setError("로그인 중 문제가 발생했습니다.");
+    }
   };
-  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=6c7826890b2dfbb3924ce9491ac3a492&redirect_uri=http://localhost:5001/auth/kakao/callback&response_type=code`;
-  const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?client_id=UTeD3wg5vzrVdKMYkLga&redirect_uri=http://localhost:5001/auth/naver/callback&response_type=code`;
+  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=6c7826890b2dfbb3924ce9491ac3a492&redirect_uri=http://172.10.7.34:5001/auth/kakao/callback&response_type=code`;
+  const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?client_id=UTeD3wg5vzrVdKMYkLga&redirect_uri=http://172.10.7.34:5001/auth/naver/callback&response_type=code`;
 
   return (
     <div className="signin-container">
@@ -43,6 +69,7 @@ const SignInPage = ({ onSignIn }) => {
               className="form-input"
             />
           </div>
+          {error && <p className="error-message">{error}</p>}
           <button type="submit" className="signin-button">
             로그인
           </button>
