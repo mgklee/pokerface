@@ -6,6 +6,7 @@ import CreateRoomModal from './components/CreateRoomModal';
 import JoinRoomModal from './components/JoinRoomModal';
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
+import KakaoCallback from "./Login/KakaoCallback"
 
 const App = () => {
   // State to track whether the user is signed in
@@ -23,8 +24,8 @@ const App = () => {
   return (
     <Router>
       <NavBar
-        isSignedIn={isSignedIn}
-        setIsSignedIn={setIsSignedIn}
+        // isSignedIn={isSignedIn}
+        // setIsSignedIn={setIsSignedIn}
         openCreateRoomModal={openCreateRoomModal}
         openJoinRoomModal={openJoinRoomModal}
       />
@@ -61,6 +62,28 @@ const App = () => {
           element={
             <SignUpPage
               onSignIn={() => setIsSignedIn(true)} // Set the user as signed in when they sign up
+            />
+          }
+        />
+        <Route
+          path="/auth/kakao/callback"
+          element={
+            <KakaoCallback
+              onSignIn={(id) => {
+                setIsSignedIn(true);
+                setUserId(id);
+              }}
+            />
+          }
+        />
+        <Route
+          path="/auth/naver/callback"
+          element={
+            <KakaoCallback
+              onSignIn={(id) => {
+                setIsSignedIn(true);
+                setUserId(id);
+              }}
             />
           }
         />

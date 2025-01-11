@@ -1,10 +1,20 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 
-const NavBar = ({ isSignedIn, setIsSignedIn, openCreateRoomModal, openJoinRoomModal }) => {
+const NavBar = ({ openCreateRoomModal, openJoinRoomModal }) => {
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const navigate = useNavigate();
 
+  // 백엔드에서 로그인 처리(시작)
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    setIsSignedIn(!!token); // 토큰이 있으면 로그인 상태
+  }, []);
+    // 백엔드에서 로그인 처리 (끝)
+
   const handleSignOut = () => {
+    localStorage.removeItem("authToken"); // 토큰 삭제 (백엔드)
+    localStorage.removeItem("userId"); // 사용자 ID 삭제 (백엔드)
     setIsSignedIn(false); // Update the signed-in state
     navigate("/"); // Redirect to the homepage
   };
