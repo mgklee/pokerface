@@ -46,7 +46,7 @@ const App = () => {
               {isSignedIn ? (
                 <div className="user-info">
                   <h1>안녕하세요, {nickname}님!</h1>
-                  <h1>아이디: {userId}</h1>
+                  {/* <h1>아이디: {userId}</h1> */}
                 </div>
               ) : (
                 <h1>환영합니다!</h1>
