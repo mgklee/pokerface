@@ -6,14 +6,15 @@ const SignInPage = ({ onSignIn }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const baseUrl = "https://172.10.7.57:8001";
 
   // 백엔드에서 로그인 처리 (시작)
   const handleSubmit = async(e) => {
     e.preventDefault();
     // Add sign-in validation logic here
-    
+
     try {
-      const response = await fetch("http://172.10.7.34:5001/auth/signin", {
+      const response = await fetch(`${baseUrl}/auth/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -21,9 +22,9 @@ const SignInPage = ({ onSignIn }) => {
           password: password,
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         setError(data.message || "로그인 실패");
         return;
@@ -39,8 +40,8 @@ const SignInPage = ({ onSignIn }) => {
       setError("로그인 중 문제가 발생했습니다.");
     }
   };
-  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=6c7826890b2dfbb3924ce9491ac3a492&redirect_uri=http://172.10.7.34:5001/auth/kakao/callback&response_type=code`;
-  const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?client_id=UTeD3wg5vzrVdKMYkLga&redirect_uri=http://172.10.7.34:5001/auth/naver/callback&response_type=code`;
+  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=6c7826890b2dfbb3924ce9491ac3a492&redirect_uri=${baseUrl}/auth/kakao/callback&response_type=code`;
+  const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?client_id=UTeD3wg5vzrVdKMYkLga&redirect_uri=${baseUrl}/auth/naver/callback&response_type=code`;
 
   return (
     <div className="signin-container">

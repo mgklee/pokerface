@@ -8,6 +8,7 @@ const SignUpPage = ({ onSignIn }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const baseUrl = "https://172.10.7.57:8001";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +20,7 @@ const SignUpPage = ({ onSignIn }) => {
 
     // 백엔드에서 회원가입 처리 (시작)
     try {
-      const response = await fetch("http://172.10.7.34:5001/auth/signup", {
+      const response = await fetch(`${baseUrl}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -28,9 +29,9 @@ const SignUpPage = ({ onSignIn }) => {
           password,
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         setError(data.message || "회원가입 실패");
         return;

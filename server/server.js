@@ -6,6 +6,22 @@ const authRoutes = require("./routes/auth");
 const WebSocket = require("ws");
 const server = new WebSocket.Server({ port: 8080 });
 
+// fs and https 모듈 가져오기
+const https = require("https");
+const fs = require("fs");
+
+// certificate와 private key 가져오기
+// ------------------- STEP 2
+const options = {
+  key: fs.readFileSync("../config/cert.key"),
+  cert: fs.readFileSync("../config/cert.crt"),
+};
+
+// https 의존성으로 certificate와 private key로 새로운 서버를 시작
+https.createServer(options, app).listen(8001, () => {
+  console.log(`HTTPS server started on port 8080`);
+});
+
 const app = express();
 app.use(cors());
 app.use(express.json());
