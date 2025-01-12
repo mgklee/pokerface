@@ -6,7 +6,7 @@ const SignInPage = ({ onSignIn }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const baseUrl = "https://172.10.7.57:8001";
+  const baseUrl = "https://172.10.7.34:5001";
 
   // 백엔드에서 로그인 처리 (시작)
   const handleSubmit = async(e) => {

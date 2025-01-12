@@ -11,7 +11,7 @@ const RoomPage = () => {
 
   useEffect(() => {
     // WebSocket 연결
-    socket.current = new WebSocket("ws://172.10.7.34:8080");
+    socket.current = new WebSocket("wss://172.10.7.34:8080");
 
     // WebSocket 연결 상태 확인
     socket.current.onopen = () => {

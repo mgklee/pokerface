@@ -17,14 +17,14 @@ const options = {
   cert: fs.readFileSync("../config/cert.crt"),
 };
 
-// https 의존성으로 certificate와 private key로 새로운 서버를 시작
-https.createServer(options, app).listen(8001, () => {
-  console.log(`HTTPS server started on port 8080`);
-});
-
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// https 의존성으로 certificate와 private key로 새로운 서버를 시작
+https.createServer(options, app).listen(5001, () => {
+  console.log(`HTTPS server started on port 5001`);
+});
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -46,6 +46,3 @@ server.on("connection", (socket) => {
 
 // 라우트 설정
 app.use("/auth", authRoutes);
-
-const PORT = 5001;
-app.listen(PORT, () => console.log(`Server running on http://172.10.7.34:${PORT}`));
