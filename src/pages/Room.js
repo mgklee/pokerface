@@ -11,21 +11,16 @@ const RoomPage = () => {
 
   useEffect(() => {
     // WebSocket 연결
-    socket.current = new WebSocket("wss://172.10.7.34:8080");
+    socket.current = new WebSocket("wss://172.10.7.34:5001");
 
     // WebSocket 연결 상태 확인
     socket.current.onopen = () => {
       console.log("WebSocket connected!");
       isSocketConnected.current = true;
-      // WebRTC 연결 시작 (WebSocket이 열렸을 때)
-      peerConnection.current.createOffer().then((offer) => {
-        peerConnection.current.setLocalDescription(offer);
-        if (socket.current.readyState === WebSocket.OPEN) {
-          socket.current.send(JSON.stringify({ type: "offer", offer }));
-        } else {
-          console.error("WebSocket is not open. Unable to send message.");
-        }
-      });
+      // 본인의 방 번호와 ID를 서버에 전달
+      socket.current.send(
+        JSON.stringify({ type: "join-room", roomId, userId: Math.random().toString(36).substring(7) })
+      );
     };
 
     socket.current.onerror = (error) => {
@@ -61,30 +56,76 @@ const RoomPage = () => {
 
     // 원격 스트림 설정
     peerConnection.current.ontrack = (event) => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+      const videoElement = document.createElement("video");
+      videoElement.autoplay = true;
+      videoElement.srcObject = event.streams[0];
+      videoElement.style.border = "1px solid black";
+      videoElement.style.margin = "10px";
+
+      // "remote-videos"라는 컨테이너에 추가
+      const remoteVideosContainer = document.getElementById("remote-videos");
+      if (remoteVideosContainer) {
+        remoteVideosContainer.appendChild(videoElement);
       }
     };
 
     // WebSocket 메시지 처리
-    socket.current.onmessage = (event) => {
+    socket.current.onmessage = async(event) => {
       const message = JSON.parse(event.data);
-      if (message.type === "offer") {
-        peerConnection.current
-          .setRemoteDescription(new RTCSessionDescription(message.offer))
-          .then(() => peerConnection.current.createAnswer())
-          .then((answer) => {
-            peerConnection.current.setLocalDescription(answer);
-            socket.current.send(JSON.stringify({ type: "answer", answer }));
-          });
-      } else if (message.type === "answer") {
-        peerConnection.current.setRemoteDescription(
-          new RTCSessionDescription(message.answer)
-        );
-      } else if (message.type === "ice-candidate") {
-        peerConnection.current.addIceCandidate(
-          new RTCIceCandidate(message.candidate)
-        );
+
+      switch (message.type) {
+        case "new-user":
+          console.log("New user joined:", message.userId);
+
+          // 새 사용자와 연결 시작
+          const offer = await peerConnection.current.createOffer();
+          await peerConnection.current.setLocalDescription(offer);
+
+          socket.current.send(
+            JSON.stringify({
+              type: "offer",
+              offer,
+              target: message.userId,
+            })
+          );
+          break;
+
+        case "offer":
+          console.log("Received offer from:", message.sender);
+          await peerConnection.current.setRemoteDescription(
+            new RTCSessionDescription(message.offer)
+          );
+
+          const answer = await peerConnection.current.createAnswer();
+          await peerConnection.current.setLocalDescription(answer);
+
+          socket.current.send(
+            JSON.stringify({
+              type: "answer",
+              answer,
+              target: message.sender,
+            })
+          );
+          break;
+
+        case "answer":
+          console.log("Received answer from:", message.sender);
+          await peerConnection.current.setRemoteDescription(
+            new RTCSessionDescription(message.answer)
+          );
+          break;
+
+        case "ice-candidate":
+          if (message.candidate) {
+            console.log("Received ICE candidate:", message.candidate);
+            await peerConnection.current.addIceCandidate(
+              new RTCIceCandidate(message.candidate)
+            );
+          }
+          break;
+
+        default:
+          console.log("Unknown message type:", message.type);
       }
     };
 
