@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
+
+* {
+  font-family: 'Gowun Dodum', sans-serif;
+}
+
 .App {
   text-align: center;
 }
@@ -42,8 +48,33 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - 60px); /* Adjust height considering the NavBar height */
+  height: calc(100vh - 66.4px); /* Adjust height considering the NavBar height */
   text-align: center;
+}
+
+.homepage .signin-link {
+  display: inline-block;
+  color: #6b73ff;
+  font-size: 32px;
+  text-decoration: none; /* Remove underline */
+  border-radius: 4px;
+  transition: color 0.3s;
+}
+
+.hompage .signin-link:hover {
+  background-color: #000dff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Spacing between nickname and logout button */
+}
+
+.nickname {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .sign-out-button {
@@ -161,12 +192,19 @@
 .error-message {
   color: red;
   font-size: 0.9rem;
+  font-weight: bold;
   margin-bottom: 15px;
+}
+
+.social-login {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .naver-login,
 .kakao-login {
-  padding: 10px 20px;
+  padding: 10px 30px;
   font-size: 1rem;
   color: white;
   border: none;
@@ -176,7 +214,7 @@
 }
 
 .naver-login {
-  background: #03c75a;
+  background: #2db400;
   font-weight: bold;
 }
 
@@ -185,8 +223,8 @@
 }
 
 .kakao-login {
-  background: #ffeb00;
-  color: #3c1e1e;
+  background: #ffe500;
+  color: #191919;
   font-weight: bold;
 }
 

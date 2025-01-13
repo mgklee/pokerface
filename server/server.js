@@ -2,7 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
+
 const authRoutes = require("./routes/auth");
+const usersRoutes = require("./routes/users");
 const WebSocket = require("ws");
 const server = new WebSocket.Server({ port: 8080 });
 
@@ -11,7 +13,6 @@ const https = require("https");
 const fs = require("fs");
 
 // certificate와 private key 가져오기
-// ------------------- STEP 2
 const options = {
   key: fs.readFileSync("../config/cert.key"),
   cert: fs.readFileSync("../config/cert.crt"),
@@ -46,3 +47,4 @@ server.on("connection", (socket) => {
 
 // 라우트 설정
 app.use("/auth", authRoutes);
+app.use("/users", usersRoutes);

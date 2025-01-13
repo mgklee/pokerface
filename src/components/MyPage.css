@@ -1,0 +1,112 @@
+.my-page {
+  width: 50%;
+}
+
+/* Item List Styles */
+.item-list {
+  max-height: 60vh; /* Limit height to 60% of the viewport */
+  overflow-y: auto; /* Enable scrolling */
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  margin-top: 20px;
+}
+
+/* Scrollbar Customization */
+.item-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.item-list::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.item-list::-webkit-scrollbar-thumb:hover {
+  background-color: #aaa;
+}
+
+/* Item Styles */
+.item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.item iframe {
+  width: 100%;
+  max-width: 560px;
+  height: 315px;
+  border: none;
+}
+
+/* Add Item Styles */
+.add-item {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.edit-item {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.add-item select,
+.add-item input,
+.edit-item select,
+.edit-item input {
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.add-item select,
+.add-item input {
+  border: 1px solid #ccc;
+}
+
+.add-item input,
+.edit-item input {
+  flex: 1;
+}
+
+.button-couple {
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  gap: 10px;
+}
+
+.button-couple button {
+  border: none; /* Remove default border */
+  border-radius: 4px; /* Rounded corners */
+  font-size: 16px; /* Adjust font size */
+  cursor: pointer; /* Change cursor to pointer on hover */
+  transition: background-color 0.3s, color 0.3s; /* Add smooth transitions */
+}
+
+.button-couple button {
+  background-color: transparent;
+}
+
+.button-couple button:first-child:hover {
+  color: #0056b3; /* Darker blue on hover */
+}
+
+.button-couple button:last-child:hover {
+  color: #a71d2a; /* Darker red on hover */
+}

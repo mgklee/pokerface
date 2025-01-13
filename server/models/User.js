@@ -8,6 +8,14 @@ const userSchema = new mongoose.Schema({
   email: { type: String }, // 이메일 (네이버만 제공)
   profileImage: { type: String }, // 프로필 이미지 URL
   createdAt: { type: Date, default: Date.now }, // 가입 시간
+  games: { type: Number, default: 0 },
+  wins: { type: Number, default: 0 },
+  items: [
+    {
+      type: { type: String, required: true },
+      content: { type: String, required: true },
+    },
+  ],
 });
 
 module.exports = mongoose.model("User", userSchema);

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import "./App.css";
 
 import NavBar from "./components/NavBar";
 import CreateRoomModal from "./components/CreateRoomModal";
 import JoinRoomModal from "./components/JoinRoomModal";
+import MyPage from "./components/MyPage";
 import EmotionRecognition from "./components/EmotionRecognition";
 
 import KakaoCallback from "./Login/KakaoCallback";
@@ -38,6 +39,7 @@ const App = () => {
       <NavBar
         isSignedIn={isSignedIn}
         setIsSignedIn={setIsSignedIn}
+        nickname={nickname}
         openCreateRoomModal={openCreateRoomModal}
         openJoinRoomModal={openJoinRoomModal}
       />
@@ -47,14 +49,11 @@ const App = () => {
           element={
             <div className="homepage">
               {isSignedIn ? (
-                <div className="user-info">
-                  <h1>안녕하세요, {nickname}님!</h1>
-                  {/* <h1>아이디: {userId}</h1> */}
-                </div>
+                <MyPage userId={userId}/>
               ) : (
-                <h1>어서 오세요! 현재 당신의 표정은...</h1>
+                <h1>환영합니다! <Link to="/signin" className="signin-link">로그인</Link>하여<br/>
+                게임에 참가하세요!</h1>
               )}
-              <EmotionRecognition />
             </div>
           }
         />
@@ -73,14 +72,21 @@ const App = () => {
         <Route
           path="/auth/kakao/callback"
           element={
-            <KakaoCallback  onSignIn={onSignIn}/>
+            <KakaoCallback onSignIn={onSignIn}/>
           }
         />
         <Route
           path="/auth/naver/callback"
           element={
-            <NaverCallback
-              onSignIn={onSignIn}/>
+            <NaverCallback onSignIn={onSignIn}/>
+          }
+        />
+        <Route
+          path="/singleplay"
+          element={
+            <div className="homepage">
+              <EmotionRecognition />
+            </div>
           }
         />
         <Route path="/room/:roomId" element={<RoomPage />} />

@@ -1,19 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import * as faceapi from "face-api.js";
-import { Line } from "react-chartjs-2";
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-// Register necessary components for Chart.js
-Chart.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
+import EmotionChart from "./EmotionChart.js";
 
 const EmotionRecognition = () => {
   const videoRef = useRef(null);
@@ -148,7 +135,13 @@ const EmotionRecognition = () => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+    <div style={{
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "40px"
+      }}>
       <div style={{ position: "relative", textAlign: "center" }}>
         <video
           ref={videoRef}
@@ -167,57 +160,10 @@ const EmotionRecognition = () => {
         />
 
       </div>
-      <div>
+      <div style={{ height: 360 }}>
         <h3>Total Blinks: {blinks}</h3>
-        <EmotionLineChart chartData={chartData} />
+        <EmotionChart chartData={chartData} />
       </div>
-    </div>
-  );
-};
-
-const EmotionLineChart = ({ chartData }) => {
-  const data = {
-    labels: chartData.timestamps, // Time labels
-    datasets: Object.keys(chartData.emotions).map((emotion, index) => ({
-      label: emotion,
-      data: chartData.emotions[emotion],
-      borderColor: `rgba(${50 + index * 30}, ${100 + index * 20}, ${200 - index * 20}, 1)`,
-      backgroundColor: `rgba(${50 + index * 30}, ${100 + index * 20}, ${200 - index * 20}, 0.2)`,
-      fill: false, // No fill under the line
-      tension: 0.4, // Smooth lines
-    })),
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true,
-        position: "top",
-      },
-    },
-    scales: {
-      x: {
-        type: "category", // Use "category" scale for x-axis
-        title: {
-          display: true,
-          text: "Time",
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Probability",
-        },
-        beginAtZero: true,
-        max: 1, // Probabilities range from 0 to 1
-      },
-    },
-  };
-
-  return (
-    <div style={{ marginTop: "20px" }}>
-      <Line data={data} options={options} />
     </div>
   );
 };
