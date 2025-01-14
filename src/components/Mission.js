@@ -10,7 +10,7 @@ const Mission = ({ currentMission, missionProgress, missionCompleted }) => {
             <p style={{ color: "green" }}>미션 성공!</p>
           ) : (
             <p>
-              현재 기록: {currentMission.type == "raise" ? (
+              현재 기록: {currentMission.type === "raise" ? (
                 `${(missionProgress * 100).toFixed(0)}%`
               ) : (
                 `${missionProgress.toFixed(1)}초`

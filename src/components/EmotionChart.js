@@ -136,8 +136,8 @@ const EmotionChart = ({ chartData }) => {
   };
 
   return (
-    <div style={{ marginTop: "20px", height: 300 }}>
-      <Line data={data} options={options} height={300} />
+    <div style={{ height: 360 }}>
+      <Line data={data} options={options} height={360}/>
     </div>
   );
 };

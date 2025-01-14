@@ -7,7 +7,6 @@ const EmotionRecognition = ({ currentMission, missionProgress, setMissionProgres
   const canvasRef = useRef(null);
   const currentMissionRef = useRef(currentMission);
   const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [blinks, setBlinks] = useState(0);
   const [chartData, setChartData] = useState({
     timestamps: [],
     emotions: {
@@ -185,10 +184,7 @@ const EmotionRecognition = ({ currentMission, missionProgress, setMissionProgres
           }}
         />
       </div>
-      <div style={{ height: 360 }}>
-        <h3>Total Blinks: {blinks}</h3>
-        <EmotionChart chartData={chartData} />
-      </div>
+      <EmotionChart chartData={chartData} />
     </div>
   );
 };
