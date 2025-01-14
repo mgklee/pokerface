@@ -26,7 +26,7 @@ const missions = (() => {
               emotion,
               target: score,
               duration,
-              description: `${duration}초 동안 ${emotionTranslations[emotion]} 수치를 ${(score * 100).toFixed(0)}% 이상으로 유지하세요`,
+              description: `${duration}초 동안 ${emotionTranslations[emotion]} 수치를 ${(score * 100).toFixed(0)}% 이상으로 유지하세요.`,
             });
           });
         });
@@ -36,7 +36,7 @@ const missions = (() => {
             type,
             emotion,
             duration,
-            description: `${duration}초 동안 ${emotionTranslations[emotion]} 수치를 10% 이상 90% 이하로 유지하세요`,
+            description: `${duration}초 동안 ${emotionTranslations[emotion]} 수치를 10% 이상 90% 이하로 유지하세요.`,
           });
         });
       } else {
