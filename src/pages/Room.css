@@ -1,0 +1,36 @@
+.video-container {
+    display: grid;
+    gap: 10px;
+    margin: 20px auto;
+    width: 90%;
+    height: 90%;
+  }
+  
+  .video-container video {
+    width: 700px;
+    height: 700px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 비디오가 1개일 때 */
+  .video-container.grid-1 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  /* 비디오가 2개일 때 */
+  .video-container.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* 비디오가 3개일 때 */
+  .video-container.grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* 비디오가 4개 이상일 때 */
+  .video-container.grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  

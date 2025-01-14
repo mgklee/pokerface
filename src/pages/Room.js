@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, useRevalidator, useNavigate } from "react-router-dom";
+import "./Room.css";
 
 const RoomPage = () => {
   const { roomId } = useParams();
@@ -9,9 +10,9 @@ const RoomPage = () => {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState([]);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const maxParticipants = location.state?.participants;
-  const navigate = useNavigate();
 
   // 백엔드에서 실시간 웹캠 관리 (시작)
   useEffect(() => {
@@ -190,7 +191,12 @@ const RoomPage = () => {
   return (
     <div className="room-page">
       <h1>Room {roomId}</h1>
-      <div className = "video-container">
+      <div
+        className={`video-container grid-${Math.min(
+        4,
+        Math.max(1, remoteStreams.length)
+        )}`}
+      >
         <video ref={localVideoRef} autoPlay muted></video>
         <div id="remote-videos">
           {remoteStreams.map(({ userId, stream }) => (
