@@ -19,6 +19,7 @@ const options = {
 
 const app = express();
 const rooms = {}; // 방별 사용자 관리
+const maxtime = 10;
 app.use(cors());
 app.use(express.json());
 const httpsServer = https.createServer(options, app);
@@ -42,6 +43,19 @@ wss.on("connection", (socket) => {
     const message = JSON.parse(data);
 
     switch (message.type) {
+      case "shared-item":
+        const expireTime = Date.now() + 1000 * maxtime;
+
+        // 현재 방의 모든 사용자에게 메시지 전달
+        rooms[currentRoom]?.participants.forEach((participant) => {
+          if (participant.userId !== currentUser) {
+            participant.socket.send(
+              JSON.stringify({ type: "shared-item", item: message.item, expireTime, })
+            );
+          }
+        });
+        break;
+
       case "join-room":
         currentRoom = message.roomId;
         currentUser = message.userId;

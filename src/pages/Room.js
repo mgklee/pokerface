@@ -9,8 +9,9 @@ const RoomPage = () => {
   const peerConnections = useRef({});
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState([]);
-  const [items, setItems] = useState([]); // 사용자 DB의 items 목록
-  const [selectedFiles, setSelectedFiles] = useState([]); // 중앙 드래그 앤 드롭/업로드 목록
+  const [items, setItems] = useState([]);
+  const [uploadedItem, setUploadedItem] = useState(null); // 업로드된 항목
+  const [sharedItem, setSharedItem] = useState(null); // 공유된 항목
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -60,6 +61,17 @@ const RoomPage = () => {
       const message = JSON.parse(event.data);
 
       switch (message.type) {
+        case "shared-item":
+          setSharedItem(message.item);
+          const remainingTime = message.expireTime - Date.now();
+          if (remainingTime > 0) {
+            setTimeout(() => {
+              setSharedItem(null);
+            }, remainingTime);
+          } else {
+            setSharedItem(null); // 이미 시간이 지났다면 바로 제거
+          }
+          break;
         case "room-full":
           alert("정원이 다 찼습니다.");
           navigate("/");
@@ -194,23 +206,91 @@ const RoomPage = () => {
   useEffect(() => {
     // 여기서 사용자 DB에서 items 목록을 불러옴 (예시 데이터)
     const mockItems = [
-      { type: "text", content: "Sample Text 1" },
+      { type: "text", content: "논리적인 사람이 총을 쏘면? 타당타당" },
       { type: "text", content: "Sample Text 2" },
-      { type: "image", content: "https://via.placeholder.com/150" },
+      { type: "image", content: "https://www.youtube.com" },
     ];
     setItems(mockItems);
   }, []);
 
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    setSelectedFiles((prev) => [...prev, ...files.map((file) => file.name)]);
-  };
+  // 공통 파일 처리 함수
+const processFile = (file) => {
+  if (file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedItem({ type: "image", content: reader.result });
+    };
+    reader.readAsDataURL(file);
+  } else if (file.type === "text/plain") {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedItem({ type: "text", content: reader.result });
+    };
+    reader.readAsText(file); // 텍스트 파일 읽기
+  } else {
+    alert("이미지 파일이나 텍스트 파일만 업로드 가능합니다.");
+  }
+};
 
-  const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
-    setSelectedFiles((prev) => [...prev, ...files.map((file) => file.name)]);
+// 드래그 앤 드롭 처리 함수
+const handleFileDrop = (e) => {
+  e.preventDefault();
+  
+  // 업로드 제한 확인
+  const items = e.dataTransfer?.items;
+  if (!items || items.length > 1 || uploadedItem) {
+    alert("하나의 항목만 업로드할 수 있습니다.");
+    return;
+  }
+
+  const item = items[0];
+  if (item.kind === "file") {
+    const file = item.getAsFile();
+    processFile(file); // 파일 처리
+  } else if (item.kind === "string" && item.type === "text/plain") {
+    item.getAsString((text) => {
+      setUploadedItem({ type: "text", content: text });
+    });
+  } else {
+    alert("이미지나 텍스트만 지원됩니다.");
+  }
+};
+
+// 파일 선택기 처리 함수
+const handleFileSelect = (e) => {
+  // 업로드 제한 확인
+  const files = e.target?.files;
+  if (!files || files.length > 1 || uploadedItem) {
+    alert("하나의 항목만 업로드할 수 있습니다.");
+    return;
+  }
+
+  const file = files[0];
+  processFile(file); // 파일 처리
+};
+
+  const handleDropZoneClick = () => {
+    if (!socket.current || socket.current.readyState !== WebSocket.OPEN) {
+      console.error("WebSocket is not open. Cannot send data.");
+      return;
+    }
+    if (uploadedItem) {
+      socket.current.send(
+        JSON.stringify({
+          type: "shared-item",
+          item: uploadedItem,
+        })
+      );
+      setSharedItem(uploadedItem);
+      setUploadedItem(null); // 업로드된 항목 초기화
+      setTimeout(() => {
+        setSharedItem(null);
+      }, 10000);
+    } else {
+      alert("공유할 항목이 없습니다.");
+    }
   };
+  
   // 드래그앤 드롭 (끝)
 
   return (
@@ -242,12 +322,15 @@ const RoomPage = () => {
         >
           <p>Drag and drop files here, or select files to upload.</p>
           <div>
-            <input type="file" multiple onChange={handleFileSelect} />
+            <input type="file" onChange={handleFileSelect} />
           </div>
+          <button onClick={handleDropZoneClick}>확인</button>
           <ul>
-            {selectedFiles.map((file, index) => (
-              <li key={index}>{file}</li>
-            ))}
+            {sharedItem?.type === "image" ? (
+              <img src={sharedItem?.content} alt="Shared item" style={{ width: "100px" }} />
+            ) : (
+              <p>{sharedItem?.content}</p>
+            )}
           </ul>
         </div>
 
