@@ -1,27 +1,50 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, useRevalidator, useNavigate } from "react-router-dom";
+import * as faceapi from "face-api.js";
+import EmotionChart from "../components/EmotionChart.js";
 import "./Room.css";
 
 const RoomPage = () => {
   const { roomId } = useParams();
   const localVideoRef = useRef(null);
+  const videoRefs = useRef({});
+  const canvasRef = useRef(null);
+  const canvasRefs = useRef({});
   const socket = useRef(null);
   const peerConnections = useRef({});
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStreams, setRemoteStreams] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStreams, setRemoteStreams] = useState([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [chartData, setChartData] = useState({
+    timestamps: [],
+    emotions: {
+      happy: [],
+      sad: [],
+      angry: [],
+      surprised: [],
+      neutral: [],
+      disgusted: [],
+      fearful: [],
+    },
+  });
 
   const maxParticipants = location.state?.participants;
 
   // 백엔드에서 실시간 웹캠 관리 (시작)
   useEffect(() => {
+    const constraints = {
+      video: {
+        width: { ideal: 360 },
+        height: { ideal: 270 },
+      },
+    };
+
     const initializeLocalStream = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         setLocalStream(stream);
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
@@ -91,6 +114,25 @@ const RoomPage = () => {
       Object.values(peerConnections.current).forEach((pc) => pc.close());
     };
   }, [localStream]);
+
+  useEffect(() => {
+    // Load face-api.js models
+    const loadModels = async () => {
+      try {
+        const MODEL_URL = "/models"; // Path to your models
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+        ]);
+        setModelsLoaded(true);
+      } catch (error) {
+        console.error("Error loading models: ", error);
+      }
+    };
+
+    loadModels();
+  }, []);
 
   const createPeerConnection = (userId) => {
     const pc = new RTCPeerConnection({
@@ -188,28 +230,125 @@ const RoomPage = () => {
   };
   // 백엔드에서 실시간 웹캠 관리 (끝)
 
+  const handleVideoPlay = (video, canvas) => {
+    if (!modelsLoaded) return;
+
+    const detectEmotions = async () => {
+      const displaySize = { width: video.videoWidth, height: video.videoHeight };
+      faceapi.matchDimensions(canvas, displaySize);
+
+      setInterval(async () => {
+        const detections = await faceapi
+          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks()
+          .withFaceExpressions();
+
+        if (detections) {
+          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+
+          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+          faceapi.draw.drawDetections(canvas, resizedDetections);
+
+          const expressions = detections.expressions;
+          const currentTime = new Date().toLocaleTimeString();
+
+          setChartData((prevData) => ({
+            timestamps: [...prevData.timestamps, currentTime].slice(-20),
+            emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
+              acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
+              return acc;
+            }, {}),
+          }));
+        }
+      }, 100);
+    };
+
+    detectEmotions();
+  };
+
+  const handleLoadedMetadata = (_videoRef, _canvasRef) => {
+    const video = _videoRef.current;
+    const canvas = _canvasRef.current;
+
+    if (video && canvas) {
+      canvas.width = video.width;
+      canvas.height = video.height;
+      handleVideoPlay(video, canvas);
+    }
+  };
+
   return (
     <div className="room-page">
-      <h1>Room {roomId}</h1>
       <div
         className={`video-container grid-${Math.min(
         4,
         Math.max(1, remoteStreams.length)
         )}`}
       >
-        <video ref={localVideoRef} autoPlay muted></video>
-        <div id="remote-videos">
-          {remoteStreams.map(({ userId, stream }) => (
+        <div style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "40px"
+        }}>
+          <div style={{ position: "relative" }}>
             <video
-              key={userId}
+              ref={localVideoRef}
               autoPlay
-              ref={(video) => {
-                if (video) {
-                  video.srcObject = stream;
-                }
+              muted
+              onLoadedMetadata={() => handleLoadedMetadata(localVideoRef, canvasRef)}
+            />
+            <canvas
+              ref={canvasRef}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                border: "1px solid black",
               }}
-            ></video>
-          ))}
+            />
+          </div>
+          <EmotionChart chartData={chartData} />
+        </div>
+        <div id="remote-videos">
+          {remoteStreams.map(({ userId, stream }) => {
+            if (!videoRefs.current[userId]) {
+              videoRefs.current[userId] = React.createRef();
+            }
+
+            if (!canvasRefs.current[userId]) {
+              canvasRefs.current[userId] = React.createRef();
+            }
+
+            return (
+              <div key={userId} style={{ position: "relative" }}>
+                <video
+                  ref={(video) => {
+                    if (video) {
+                      video.srcObject = stream;
+                      videoRefs.current[userId].current = video;
+                    }
+                  }}
+                  autoPlay
+                  muted
+                  onLoadedMetadata={() => handleLoadedMetadata(videoRefs.current[userId], canvasRefs.current[userId])}
+                />
+                <canvas
+                  ref={(canvas) => {
+                    if (canvas) {
+                      canvasRefs.current[userId].current = canvas;
+                    }
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

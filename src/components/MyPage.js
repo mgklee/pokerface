@@ -90,7 +90,8 @@ const MyPage = ({ userId }) => {
       case "video":
         // Convert YouTube URL to embed URL
         const videoId = item.content.split("v=")[1]?.split("&")[0]; // Extract video ID
-        const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        const startTime = item.content.split("t=")[1];
+        const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?start=${startTime}` : null;
 
         if (!embedUrl) {
           return <p>유효하지 않은 YouTube 링크입니다.</p>; // Show error for invalid links

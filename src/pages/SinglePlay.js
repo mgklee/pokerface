@@ -30,7 +30,7 @@ const SinglePlayPage = () => {
         <button
           onClick={handleMissionReset}
         >
-          초기화
+          다음
         </button>
       </div>
       <EmotionRecognition
