@@ -8,7 +8,7 @@ const SignUpPage = ({ onSignIn }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const baseUrl = "https://172.10.7.57:5001";
+  const baseUrl = "https://172.10.7.34:5001";
 
   const handleSubmit = async (e) => {
     e.preventDefault();

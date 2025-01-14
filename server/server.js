@@ -35,6 +35,7 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 wss.on("connection", (socket) => {
+  let currentUser = null;
   socket.on("message", (data) => {
     const message = JSON.parse(data);
     // console.log("Received message:", message);
@@ -42,7 +43,8 @@ wss.on("connection", (socket) => {
     switch (message.type) {
       // 클라이언트에서 받은 정보가 '방 참여'일 때
       case "join-room":
-        users[message.userId] = socket;
+        currentUser = message.userId;
+        users[currentUser] = socket;
         console.log(`User ${message.userId} joined room ${message.roomId}`);
 
         Object.values(users).forEach((userSocket) => {
@@ -116,17 +118,16 @@ wss.on("connection", (socket) => {
   });
 
   socket.on("close", () => {
-    const userId = Object.keys(users).find((key) => users[key] === socket);
-    if (userId) {
-      delete users[userId];
-      // 사용자가 웹소켓 연결 종료할 때
-      console.log(`User ${userId} disconnected`);
+    if (currentUser) {
+      console.log(`User ${currentUser} disconnected`);
+      delete users[currentUser];
+
       // 다른 사용자에게 연결 종료 알림
-      // Object.values(users).forEach((userSocket) => {
-      //   userSocket.send(
-      //     JSON.stringify({ type: "user-left", userId })
-      //   );
-      // });
+      Object.values(users).forEach((userSocket) => {
+        userSocket.send(
+          JSON.stringify({ type: "user-left", userId: currentUser })
+        );
+      });
     }
   });
 });

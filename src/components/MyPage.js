@@ -8,7 +8,7 @@ const MyPage = ({ userId }) => {
   const [newItem, setNewItem] = useState({ type: "text", content: "" }); // New item input
   const [editingIndex, setEditingIndex] = useState(null); // Index of item being edited
   const [editingItem, setEditingItem] = useState(null); // Edited item content
-  const baseUrl = "https://172.10.7.57:5001";
+  const baseUrl = "https://172.10.7.34:5001";
 
   useEffect(() => {
     const fetchItems = async () => {
