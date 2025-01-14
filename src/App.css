@@ -65,6 +65,24 @@
   background-color: #000dff;
 }
 
+.mission {
+  width: 800px; display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mission button {
+  height: 50px;
+  background-color: transparent;
+  border-radius: 10px;
+}
+
+.mission button:hover {
+  background-color: #1e1e2f;
+  color: white;
+}
+
 .user-info {
   display: flex;
   align-items: center;

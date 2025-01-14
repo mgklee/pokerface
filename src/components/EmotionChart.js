@@ -126,7 +126,7 @@ const EmotionChart = ({ chartData }) => {
           beginAtZero: true,
           max: 1, // Keep max at 1 (100%)
           stepSize: 0.2, // Tick interval (0.2 = 20%)
-          callback: (value) => `${(value * 100).toFixed(0)}%`, // Format as percentage
+          callback: (value) => `${(value * 100).toFixed(0)}`, // Format as percentage
           font: {
             family: "Gowun Dodum",
           },
