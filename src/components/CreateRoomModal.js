@@ -22,7 +22,7 @@ const CreateRoomModal = ({ onClose }) => {
     const randDomain = Math.random().toString(36).substring(7);
     alert(`${participants}명 방을 만들었습니다!`);
     onClose(); // Close the modal after navigation
-    navigate(`/room/${randDomain}`, {state: {participants: participants, roomDomain: randDomain}});
+    navigate(`/room/${randDomain}`, {state: {participants: participants}});
   };
 
   return (

@@ -1,36 +1,84 @@
+.room-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+}
+
+.layout-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 20px;
+  width: 100%;
+  height: 80%;
+  padding: 20px;
+}
+
 .video-container {
-    display: grid;
-    gap: 10px;
-    margin: 20px auto;
-    width: 90%;
-    height: 90%;
-  }
-  
-  .video-container video {
-    width: 700px;
-    height: 700px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* 비디오가 1개일 때 */
-  .video-container.grid-1 {
-    grid-template-columns: repeat(1, 1fr);
-  }
-  
-  /* 비디오가 2개일 때 */
-  .video-container.grid-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  /* 비디오가 3개일 때 */
-  .video-container.grid-3 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  /* 비디오가 4개 이상일 때 */
-  .video-container.grid-4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 8px;
+  overflow-y: auto;
+}
+
+#remote-videos video {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.room-page .item-list {
+  align-items: center;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-radius: 8px;
+  overflow-y: auto;
+  justify-content: center;
+}
+
+.item-list h3 {
+  margin-bottom: 10px;
+}
+
+.item-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.item-list li {
+  margin-bottom: 10px;
+}
+
+.item-list img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.drop-area {
+  background-color: #e0e0e0;
+  border: 2px dashed #bbb;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: 90%;
+  text-align: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.drop-area p {
+  margin-bottom: 10px;
+}
+
+.drop-area ul {
+  list-style: none;
+  padding: 0;
+}
+
+.drop-area ul li {
+  margin-top: 5px;
+}

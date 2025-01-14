@@ -3,7 +3,7 @@
 }
 
 /* Item List Styles */
-.item-list {
+.my-page .item-list {
   max-height: 60vh; /* Limit height to 60% of the viewport */
   overflow-y: auto; /* Enable scrolling */
   padding: 10px;

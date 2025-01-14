@@ -9,6 +9,8 @@ const RoomPage = () => {
   const peerConnections = useRef({});
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState([]);
+  const [items, setItems] = useState([]); // 사용자 DB의 items 목록
+  const [selectedFiles, setSelectedFiles] = useState([]); // 중앙 드래그 앤 드롭/업로드 목록
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -188,28 +190,81 @@ const RoomPage = () => {
   };
   // 백엔드에서 실시간 웹캠 관리 (끝)
 
+  // 드래그앤 드롭 (시작)
+  useEffect(() => {
+    // 여기서 사용자 DB에서 items 목록을 불러옴 (예시 데이터)
+    const mockItems = [
+      { type: "text", content: "Sample Text 1" },
+      { type: "text", content: "Sample Text 2" },
+      { type: "image", content: "https://via.placeholder.com/150" },
+    ];
+    setItems(mockItems);
+  }, []);
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    setSelectedFiles((prev) => [...prev, ...files.map((file) => file.name)]);
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles((prev) => [...prev, ...files.map((file) => file.name)]);
+  };
+  // 드래그앤 드롭 (끝)
+
   return (
     <div className="room-page">
-      <h1>Room {roomId}</h1>
-      <div
-        className={`video-container grid-${Math.min(
-        4,
-        Math.max(1, remoteStreams.length)
-        )}`}
-      >
-        <video ref={localVideoRef} autoPlay muted></video>
-        <div id="remote-videos">
-          {remoteStreams.map(({ userId, stream }) => (
-            <video
-              key={userId}
-              autoPlay
-              ref={(video) => {
-                if (video) {
-                  video.srcObject = stream;
-                }
-              }}
-            ></video>
-          ))}
+      <div className="layout-container">
+        {/* 왼쪽 비디오 영역 */}
+        <div className="video-container">
+          <video ref={localVideoRef} autoPlay muted></video>
+          <div id="remote-videos">
+            {remoteStreams.map(({ userId, stream }) => (
+              <video
+                key={userId}
+                autoPlay
+                ref={(video) => {
+                  if (video) {
+                    video.srcObject = stream;
+                  }
+                }}
+              ></video>
+            ))}
+          </div>
+        </div>
+
+        {/* 가운데 드래그 앤 드롭 및 업로드 영역 */}
+        <div
+          className="drop-area"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleFileDrop}
+        >
+          <p>Drag and drop files here, or select files to upload.</p>
+          <div>
+            <input type="file" multiple onChange={handleFileSelect} />
+          </div>
+          <ul>
+            {selectedFiles.map((file, index) => (
+              <li key={index}>{file}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* 오른쪽 사용자 DB 아이템 목록 */}
+        <div className="item-list">
+          <h3>User Items</h3>
+          <ul>
+            {items.map((item, index) => (
+              <li key={index}>
+                {item.type === "text" ? (
+                  <span>{item.content}</span>
+                ) : (
+                  <img src={item.content} alt="item" />
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
