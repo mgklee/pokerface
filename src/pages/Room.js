@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation, useRevalidator, useNavigate } from "react-router-dom";
 
 const RoomPage = () => {
   const { roomId } = useParams();
@@ -8,7 +8,12 @@ const RoomPage = () => {
   const peerConnections = useRef({});
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState([]);
+  const location = useLocation();
 
+  const maxParticipants = location.state?.participants;
+  const navigate = useNavigate();
+
+  // 백엔드에서 실시간 웹캠 관리 (시작)
   useEffect(() => {
     const initializeLocalStream = async () => {
       try {
@@ -43,6 +48,7 @@ const RoomPage = () => {
           type: "join-room",
           roomId,
           userId,
+          maxParticipants: maxParticipants,
         })
       );
     };
@@ -51,6 +57,10 @@ const RoomPage = () => {
       const message = JSON.parse(event.data);
 
       switch (message.type) {
+        case "room-full":
+          alert("정원이 다 찼습니다.");
+          navigate("/");
+          break;
         case "new-user":
           await handleNewUser(message.userId);
           break;
@@ -175,23 +185,26 @@ const RoomPage = () => {
 
     setRemoteStreams((prev) => prev.filter((streamObj) => streamObj.userId !== userId));
   };
+  // 백엔드에서 실시간 웹캠 관리 (끝)
 
   return (
     <div className="room-page">
       <h1>Room {roomId}</h1>
-      <video ref={localVideoRef} autoPlay muted></video>
-      <div id="remote-videos">
-        {remoteStreams.map(({ userId, stream }) => (
-          <video
-            key={userId}
-            autoPlay
-            ref={(video) => {
-              if (video) {
-                video.srcObject = stream;
-              }
-            }}
-          ></video>
-        ))}
+      <div className = "video-container">
+        <video ref={localVideoRef} autoPlay muted></video>
+        <div id="remote-videos">
+          {remoteStreams.map(({ userId, stream }) => (
+            <video
+              key={userId}
+              autoPlay
+              ref={(video) => {
+                if (video) {
+                  video.srcObject = stream;
+                }
+              }}
+            ></video>
+          ))}
+        </div>
       </div>
     </div>
   );

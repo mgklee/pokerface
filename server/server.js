@@ -18,11 +18,11 @@ const options = {
 };
 
 const app = express();
-const users = {};
+const rooms = {}; // 방별 사용자 관리
 app.use(cors());
 app.use(express.json());
 const httpsServer = https.createServer(options, app);
-const wss = new WebSocket.Server({server: httpsServer});
+const wss = new WebSocket.Server({ server: httpsServer });
 
 // https 의존성으로 certificate와 private key로 새로운 서버를 시작
 httpsServer.listen(5001, () => {
@@ -36,75 +36,84 @@ mongoose
 
 wss.on("connection", (socket) => {
   let currentUser = null;
+  let currentRoom = null;
+
   socket.on("message", (data) => {
     const message = JSON.parse(data);
-    // console.log("Received message:", message);
-    
-    switch (message.type) {
-      // 클라이언트에서 받은 정보가 '방 참여'일 때
-      case "join-room":
-        currentUser = message.userId;
-        users[currentUser] = socket;
-        console.log(`User ${message.userId} joined room ${message.roomId}`);
 
-        Object.values(users).forEach((userSocket) => {
-          if (userSocket !== socket) {
-            userSocket.send(JSON.stringify({ type: "new-user", userId: message.userId }));
+    switch (message.type) {
+      case "join-room":
+        currentRoom = message.roomId;
+        currentUser = message.userId;
+
+        // 방 정보 초기화
+        if (!rooms[currentRoom]) {
+          rooms[currentRoom] = { participants: [], maxParticipants: message.maxParticipants || 10 };
+        }
+
+        // 참가자 수 초과 확인
+        if (rooms[currentRoom].participants.length >= rooms[currentRoom].maxParticipants) {
+          socket.send(JSON.stringify({ type: "room-full" }));
+          return;
+        }
+
+        // 사용자 등록
+        rooms[currentRoom].participants.push({ userId: currentUser, socket });
+        console.log(`User ${currentUser} joined room ${currentRoom}`);
+
+        // 다른 사용자에게 알림
+        rooms[currentRoom].participants.forEach((participant) => {
+          if (participant.userId !== currentUser) {
+            participant.socket.send(JSON.stringify({ type: "new-user", userId: currentUser }));
           }
         });
 
-        // 새 사용자에게 기존 사용자 목록 전달
-        // const existingUsers = Object.keys(users).filter(
-        //   (userId) => users[userId] !== socket
-        // );
-        // socket.send(
-        //   JSON.stringify({ type: "existing-users", users: existingUsers })
-        // );
         break;
-      
+
       case "offer":
-        console.log("Received Offer:", message.offer);
-        const offerTargetSocket = users[message.target];
-        if (offerTargetSocket) {
-          console.log(`Forwarding Offer to ${message.target}`);
-          offerTargetSocket.send(
+        const offerTarget = rooms[currentRoom]?.participants.find(
+          (p) => p.userId === message.target
+        );
+        if (offerTarget) {
+          offerTarget.socket.send(
             JSON.stringify({
               type: "offer",
               offer: message.offer,
-              sender: Object.keys(users).find((key) => users[key] === socket),
+              sender: rooms[currentRoom]?.participants.find((p) => p.socket === socket)?.userId || currentUser,
             })
           );
         } else {
           console.log(`Target user ${message.target} not found.`);
         }
         break;
-      
+
       case "answer":
-        console.log("Received Answer:", message.answer);
-        const answerTargetSocket = users[message.target];
-        if (answerTargetSocket) {
-          console.log(`Forwarding Answer to ${message.target}`);
-          answerTargetSocket.send(
+        const answerTarget = rooms[currentRoom]?.participants.find(
+          (p) => p.userId === message.target
+        );
+        if (answerTarget) {
+          answerTarget.socket.send(
             JSON.stringify({
               type: "answer",
               answer: message.answer,
-              sender: Object.keys(users).find((key) => users[key] === socket),
+              sender: currentUser,
             })
           );
         } else {
           console.log(`Target user ${message.target} not found.`);
         }
         break;
-      
+
       case "ice-candidate":
-        const targetSocket = users[message.target];
-        if (targetSocket) {
-          console.log(`Forwarding ICE candidate to ${message.target}`);
-          targetSocket.send(
+        const candidateTarget = rooms[currentRoom]?.participants.find(
+          (p) => p.userId === message.target
+        );
+        if (candidateTarget) {
+          candidateTarget.socket.send(
             JSON.stringify({
-              ...message,
+              type: "ice-candidate",
               candidate: message.candidate,
-              sender: Object.keys(users).find((key) => users[key] === socket),
+              sender: currentUser,
             })
           );
         } else {
@@ -118,13 +127,16 @@ wss.on("connection", (socket) => {
   });
 
   socket.on("close", () => {
-    if (currentUser) {
-      console.log(`User ${currentUser} disconnected`);
-      delete users[currentUser];
+    if (currentUser && currentRoom) {
+      rooms[currentRoom].participants = rooms[currentRoom].participants.filter(
+        (p) => p.userId !== currentUser
+      );
+
+      console.log(`User ${currentUser} disconnected from room ${currentRoom}`);
 
       // 다른 사용자에게 연결 종료 알림
-      Object.values(users).forEach((userSocket) => {
-        userSocket.send(
+      rooms[currentRoom].participants.forEach((participant) => {
+        participant.socket.send(
           JSON.stringify({ type: "user-left", userId: currentUser })
         );
       });
