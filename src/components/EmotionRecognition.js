@@ -2,11 +2,12 @@ import React, { useRef, useEffect, useState } from "react";
 import * as faceapi from "face-api.js";
 import EmotionChart from "./EmotionChart.js";
 
-const EmotionRecognition = () => {
+const EmotionRecognition = ({ currentMission, missionProgress, setMissionProgress, setMissionCompleted }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const currentMissionRef = useRef(currentMission);
   const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [blinks, setBlinks] = useState(0); // Counter for blinks
+  const [blinks, setBlinks] = useState(0);
   const [chartData, setChartData] = useState({
     timestamps: [],
     emotions: {
@@ -19,6 +20,11 @@ const EmotionRecognition = () => {
       fearful: [],
     },
   });
+
+  useEffect(() => {
+    // Keep the ref updated with the latest currentMission
+    currentMissionRef.current = currentMission;
+  }, [currentMission]);
 
   useEffect(() => {
     // Load face-api.js models
@@ -62,11 +68,44 @@ const EmotionRecognition = () => {
     startVideo();
   }, []);
 
-  const calculateEAR = (eye) => {
-    const vertical1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
-    const vertical2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
-    const horizontal = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
-    return (vertical1 + vertical2) / (2.0 * horizontal);
+  const handleMissionProgress = (expressions) => {
+    const mission = currentMissionRef.current; // Use the latest currentMission
+    if (!mission) return;
+
+    const score = expressions[mission.emotion] || 0;
+
+    if (mission.type === "keep") {
+      if (score >= mission.target) {
+        setMissionProgress((prev) => {
+          const newProgress = prev + 0.1; // Increment progress
+          if (newProgress >= mission.duration) {
+            setMissionCompleted(true); // Mark mission as complete
+          }
+          return newProgress;
+        });
+      } else {
+        setMissionProgress(0); // Reset progress if the condition breaks
+      }
+    } else if (mission.type === "limit") {
+      if (score >= 0.1 && score <= 0.9) {
+        setMissionProgress((prev) => {
+          const newProgress = prev + 0.1; // Increment progress
+          if (newProgress >= mission.duration) {
+            setMissionCompleted(true); // Mark mission as complete
+          }
+          return newProgress;
+        });
+      } else {
+        setMissionProgress(0); // Reset progress if the condition breaks
+      }
+    } else {
+      if (score >= missionProgress) {
+        setMissionProgress(score);
+      }
+      if (score >= mission.target) {
+        setMissionCompleted(true);
+      }
+    }
   };
 
   const handleVideoPlay = () => {
@@ -88,34 +127,21 @@ const EmotionRecognition = () => {
         if (detections) {
           const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
-          // Clear canvas and draw detections
           canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
           faceapi.draw.drawDetections(canvas, resizedDetections);
 
-          // Update chart data
           const expressions = detections.expressions;
           const currentTime = new Date().toLocaleTimeString();
 
           setChartData((prevData) => ({
-            timestamps: [...prevData.timestamps, currentTime].slice(-20), // Keep last 20 timestamps
+            timestamps: [...prevData.timestamps, currentTime].slice(-20),
             emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
               acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
               return acc;
             }, {}),
           }));
 
-          // Blink detection
-          const landmarks = detections.landmarks;
-          const leftEye = landmarks.getLeftEye();
-          const rightEye = landmarks.getRightEye();
-
-          const leftEAR = calculateEAR(leftEye);
-          const rightEAR = calculateEAR(rightEye);
-          const ear = (leftEAR + rightEAR) / 2.0;
-
-          if (ear < 0.25) {
-            setBlinks((prev) => prev + 1);
-          }
+          handleMissionProgress(expressions);
         }
       }, 100);
     };
@@ -141,7 +167,7 @@ const EmotionRecognition = () => {
       alignItems: "center",
       justifyContent: "center",
       gap: "40px"
-      }}>
+    }}>
       <div style={{ position: "relative", textAlign: "center" }}>
         <video
           ref={videoRef}
@@ -158,7 +184,6 @@ const EmotionRecognition = () => {
             left: 0,
           }}
         />
-
       </div>
       <div style={{ height: 360 }}>
         <h3>Total Blinks: {blinks}</h3>

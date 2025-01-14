@@ -6,11 +6,11 @@ import NavBar from "./components/NavBar";
 import CreateRoomModal from "./components/CreateRoomModal";
 import JoinRoomModal from "./components/JoinRoomModal";
 import MyPage from "./components/MyPage";
-import EmotionRecognition from "./components/EmotionRecognition";
 
-import KakaoCallback from "./Login/KakaoCallback";
-import NaverCallback from "./Login/NaverCallback";
+import KakaoCallback from "./utils/KakaoCallback";
+import NaverCallback from "./utils/NaverCallback";
 
+import SinglePlayPage from "./pages/SinglePlay";
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
 import RoomPage from "./pages/Room";
@@ -84,9 +84,7 @@ const App = () => {
         <Route
           path="/singleplay"
           element={
-            <div className="homepage">
-              <EmotionRecognition />
-            </div>
+            <SinglePlayPage />
           }
         />
         <Route path="/room/:roomId" element={<RoomPage />} />
