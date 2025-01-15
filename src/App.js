@@ -37,6 +37,7 @@ const App = () => {
   return (
     <Router>
       <NavBar
+        userId={userId}
         isSignedIn={isSignedIn}
         setIsSignedIn={setIsSignedIn}
         nickname={nickname}
@@ -84,7 +85,7 @@ const App = () => {
         <Route path="/singleplay" element={<SinglePlayPage />}/>
         <Route path="/room/:roomId" element={<RoomPage />} />
       </Routes>
-      {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} />}
+      {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} userId={userId}/>}
       {isJoinRoomModalOpen && <JoinRoomModal onClose={closeJoinRoomModal} />}
     </Router>
   );

@@ -40,7 +40,6 @@ router.post("/signin", async (req, res) => {
   }
 });
 
-
 router.post("/signup", async (req, res) => {
   console.log("Request Body:", req.body); // req.body 확인
   const { providerId, name, password } = req.body;
