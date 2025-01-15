@@ -46,7 +46,7 @@ wss.on("connection", (socket) => {
 
     switch (message.type) {
       case "shared-item":
-        const expireTime = Date.now() + 1000 * maxtime;
+        const expireTime = Date.now() + (message.item.type === "video" ? 6 * maxtime : maxtime) * 1000;
 
         // 현재 방의 모든 사용자에게 메시지 전달
         rooms[currentRoom]?.participants.forEach((participant) => {
@@ -56,6 +56,12 @@ wss.on("connection", (socket) => {
             );
           }
         });
+
+        setTimeout(() => {
+          rooms[currentRoom].participants.forEach((participant) => {
+            participant.socket.send(JSON.stringify({ type: "end-turn" }));
+          });
+        }, message.item.type === "video" ? 60000 : 10000);
         break;
 
       case "join-room":
