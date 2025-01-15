@@ -3,7 +3,7 @@ const missions = (() => {
   const types = ["keep", "limit", "raise"];
   const emotions = ["happy", "sad", "angry", "surprised", "neutral", "disgusted", "fearful"];
   const scores = [0.2, 0.4, 0.6, 0.8];
-  const durations = [2, 4, 6, 8];
+  const durations = [2, 3, 4, 5, 6];
   const emotionTranslations = {
     "happy": "행복",
     "sad": "슬픔",
