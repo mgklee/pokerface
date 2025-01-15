@@ -3,7 +3,6 @@ import { FaCopy } from "react-icons/fa";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import * as faceapi from "face-api.js";
 import EmotionChart from "../components/EmotionChart.js";
-import { PiTreeViewDuotone } from "react-icons/pi";
 import "./Room.css";
 
 const RoomPage = () => {
@@ -18,10 +17,10 @@ const RoomPage = () => {
   const navigate = useNavigate();
   const baseUrl = "https://172.10.7.34:5001";
 
-  const [attackItem, setAttackItem] = useState({ type: "text", content: "" }); // 공격할 파일
   const [items, setItems] = useState([]); // 사용자 DB의 items 목록
   const [uploadedItem, setUploadedItem] = useState(null); // 업로드된 항목
   const [sharedItem, setSharedItem] = useState(null); // 공유된 항목
+  const [attackItem, setAttackItem] = useState({ type: "text", content: "" }); // 공격할 항목
   const [selectedFiles, setSelectedFiles] = useState([]); // 중앙 드래그 앤 드롭/업로드 목록
   const [currentTurnUser, setCurrentTurnUser] = useState(0);
   const [localStream, setLocalStream] = useState(null);
@@ -41,12 +40,12 @@ const RoomPage = () => {
     },
   });
 
-  useEffect(() => {
-    if (!location.state) {
-      alert("올바르지 않은 접근입니다.");
-      navigate("/");
-    }
-  }, [location.state, navigate]);
+  // useEffect(() => {
+  //   if (!location.state) {
+  //     alert("올바르지 않은 접근입니다.");
+  //     navigate("/");
+  //   }
+  // }, [location.state, navigate]);
 
   const maxParticipants = location.state?.participants;
   const userId = location.state?.userId;
@@ -56,7 +55,6 @@ const RoomPage = () => {
     const fetchItems = async () => {
       const response = await fetch(`${baseUrl}/users/${localUserId}/items`);
       const data = await response.json();
-      console.log(data);
       setItems(data);
     };
 
@@ -276,47 +274,6 @@ const RoomPage = () => {
   };
   // 백엔드에서 실시간 웹캠 관리 (끝)
 
-  const renderItemContent = (item) => {
-    switch (item.type) {
-      case "image":
-        return <img src={item.content} alt="Item" className="item-image" />;
-      case "video":
-        // Extract video ID from YouTube URLs (regular and Shorts)
-        let videoId = null;
-        let startTime = null;
-
-        if (item.content.includes("youtube.com/watch")) {
-          // Regular YouTube video URL
-          videoId = item.content.split("v=")[1]?.split("&")[0]; // Extract video ID
-          startTime = item.content.split("t=")[1];
-        } else if (item.content.includes("youtube.com/shorts")) {
-          // YouTube Shorts URL
-          videoId = item.content.split("/shorts/")[1]?.split("?")[0];
-        }
-
-        const embedUrl = videoId
-          ? `https://www.youtube.com/embed/${videoId}${startTime ? `?start=${startTime}` : ""}`
-          : null;
-
-        if (!embedUrl) {
-          return <p>유효하지 않은 YouTube 링크입니다.</p>; // Show error for invalid links
-        }
-
-        return (
-          <iframe
-            width="560"
-            height="315"
-            src={embedUrl}
-            title="YouTube video"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-        );
-      default:
-        return <p>{item.content}</p>;
-    }
-  };
-
   // 드래그앤 드롭 (시작)
   // 공통 파일 처리 함수
   const processFile = (file) => {
@@ -400,85 +357,115 @@ const RoomPage = () => {
   };
   // 드래그앤 드롭 (끝)
 
-  const handleVideoPlay = (video, canvas, userId) => {
-    if (!modelsLoaded) return;
+  const detectEmotions = (video, canvas, userId) => {
+    const displaySize = { width: video.videoWidth, height: video.videoHeight };
+    faceapi.matchDimensions(canvas, displaySize);
 
-    const detectEmotions = async () => {
-      const displaySize = { width: video.videoWidth, height: video.videoHeight };
-      faceapi.matchDimensions(canvas, displaySize);
+    setInterval(async () => {
+      if (video.paused || video.ended) return;
+      const detections = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceExpressions();
 
-      setInterval(async () => {
-        const detections = await faceapi
-          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-          .withFaceLandmarks()
-          .withFaceExpressions();
+      if (detections) {
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
-        if (detections) {
-          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        faceapi.draw.drawDetections(canvas, resizedDetections);
 
-          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-          faceapi.draw.drawDetections(canvas, resizedDetections);
+        const expressions = detections.expressions;
+        const currentTime = new Date().toLocaleTimeString();
 
-          const expressions = detections.expressions;
-          const currentTime = new Date().toLocaleTimeString();
+        if (userId) {
+          setChartDatabase((prevDatabase) => {
+            const existingUserData = prevDatabase[userId] || {
+              timestamps: [],
+              emotions: {
+                happy: [],
+                sad: [],
+                angry: [],
+                surprised: [],
+                neutral: [],
+                disgusted: [],
+                fearful: [],
+              },
+            };
 
-          if (userId) {
-            setChartDatabase((prevDatabase) => {
-              console.log('ang');
-              if(!prevDatabase[userId]) {
-                prevDatabase[userId] = {
-                  timestamps: [],
-                  emotions: {
-                    happy: [],
-                    sad: [],
-                    angry: [],
-                    surprised: [],
-                    neutral: [],
-                    disgusted: [],
-                    fearful: [],
-                  },
-                };
+            return {
+              ...prevDatabase,
+              [userId]: {
+                timestamps: [...existingUserData.timestamps, currentTime].slice(-20),
+                emotions: Object.keys(existingUserData.emotions).reduce((acc, emotion) => {
+                  acc[emotion] = [...existingUserData.emotions[emotion], expressions[emotion] || 0].slice(-20);
+                  return acc;
+                }, {}),
               }
-
-              const prevData = prevDatabase[userId];
-              console.log(prevData);
-              const { userId, ...updatedDatabase } = prevDatabase;
-
-              return {
-                ...updatedDatabase,
-                userId: {
-                  timestamps: [...prevData.timestamps, currentTime].slice(-20),
-                  emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
-                    acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
-                    return acc;
-                  }, {}),
-                }
-              };
-            });
-          } else {
-            setChartData((prevData) => ({
-              timestamps: [...prevData.timestamps, currentTime].slice(-20),
-              emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
-                acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
-                return acc;
-              }, {}),
-            }));
-          }
+            };
+          });
+        } else {
+          setChartData((prevData) => ({
+            timestamps: [...prevData.timestamps, currentTime].slice(-20),
+            emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
+              acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
+              return acc;
+            }, {}),
+          }));
         }
-      }, 100);
-    };
-
-    detectEmotions();
+      }
+    }, 500);
   };
 
   const handleLoadedMetadata = (_videoRef, _canvasRef, userId) => {
     const video = _videoRef.current;
     const canvas = _canvasRef.current;
 
-    if (video && canvas) {
+    if (video && canvas && modelsLoaded && !video.dataset.detectionRunning) {
       canvas.width = video.width;
       canvas.height = video.height;
-      handleVideoPlay(video, canvas, userId);
+      video.dataset.detectionRunning = "true";
+      detectEmotions(video, canvas, userId);
+    }
+  };
+
+  const renderItemContent = (item) => {
+    switch (item.type) {
+      case "image":
+        return <img src={item.content} alt="Item" className="item-image" />;
+      case "video":
+        // Extract video ID from YouTube URLs (regular and Shorts)
+        let videoId = null;
+        let startTime = null;
+
+        if (item.content.includes("youtube.com/watch")) {
+          // Regular YouTube video URL
+          videoId = item.content.split("v=")[1]?.split("&")[0]; // Extract video ID
+          startTime = item.content.split("t=")[1];
+        } else if (item.content.includes("youtube.com/shorts")) {
+          // YouTube Shorts URL
+          videoId = item.content.split("/shorts/")[1]?.split("?")[0];
+        }
+
+        const embedUrl = videoId
+          ? `https://www.youtube.com/embed/${videoId}${startTime ? `?start=${startTime}` : ""}`
+          : null;
+
+        if (!embedUrl) {
+          return <p>유효하지 않은 YouTube 링크입니다.</p>; // Show error for invalid links
+        }
+
+        return (
+          <iframe
+            width="100%"
+            height="315"
+            src={embedUrl}
+            title="YouTube video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        );
+      default:
+        return <p>{item.content}</p>;
     }
   };
 
@@ -506,48 +493,49 @@ const RoomPage = () => {
             </div>
             <EmotionChart chartData={chartData} height={270} />
           </div>
-          <div id="remote-videos">
-            {remoteStreams.map(({ userId, stream }) => {
-              if (!videoRefs.current[userId]) {
-                videoRefs.current[userId] = React.createRef();
-              }
+          {remoteStreams.map(({ userId, stream }) => {
+            if (!videoRefs.current[userId]) {
+              videoRefs.current[userId] = React.createRef();
+            }
 
-              if (!canvasRefs.current[userId]) {
-                canvasRefs.current[userId] = React.createRef();
-              }
+            if (!canvasRefs.current[userId]) {
+              canvasRefs.current[userId] = React.createRef();
+            }
 
-              return (
-                <div key={userId} className="video-item">
-                  <div style={{ position: "relative" }}>
-                    <video
-                      ref={(video) => {
-                        if (video) {
-                          video.srcObject = stream;
-                          videoRefs.current[userId].current = video;
-                        }
-                      }}
-                      autoPlay
-                      muted
-                      // onLoadedMetadata={() => handleLoadedMetadata(videoRefs.current[userId], canvasRefs.current[userId], userId)}
-                    />
-                    <canvas
-                      ref={(canvas) => {
-                        if (canvas) {
-                          canvasRefs.current[userId].current = canvas;
-                        }
-                      }}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                      }}
-                    />
-                    {/* <EmotionChart chartData={chartDatabase[userId]} /> */}
-                  </div>
+            return (
+              <div key={userId} className="video-item">
+                <div style={{ position: "relative" }}>
+                  <video
+                    ref={(video) => {
+                      if (video) {
+                        video.srcObject = stream;
+                        videoRefs.current[userId].current = video;
+                      }
+                    }}
+                    autoPlay
+                    muted
+                    onLoadedMetadata={() => handleLoadedMetadata(videoRefs.current[userId], canvasRefs.current[userId], userId)}
+                  />
+                  <canvas
+                    ref={(canvas) => {
+                      if (canvas) {
+                        canvasRefs.current[userId].current = canvas;
+                      }
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                    }}
+                  />
                 </div>
-              );
-            })}
-          </div>
+                <EmotionChart
+                  chartData={chartDatabase[userId]}
+                  height={270}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* 가운데 드래그 앤 드롭 및 업로드 영역 */}
@@ -556,75 +544,70 @@ const RoomPage = () => {
           onDragOver={(e) => e.preventDefault()}
           onDrop={currentTurnUser === socket.current?.userId ? handleFileDrop : (e) => e.preventDefault()}
         >
-          {currentTurnUser === socket.current?.userId ? (
-            !sharedItem && (
-            <>
-              <p>Drag and drop files here, or select files to upload.</p>
-              <div>
-                <input type="file" onChange={handleFileSelect} />
-              </div>
-              <form
-                className="add-item"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setUploadedItem(attackItem);
-                  setAttackItem({type: "text", content: ""});
-                }}
-              >
-                <select
-                  value={attackItem.type}
-                  onChange={(e) => setAttackItem((prev) => ({ ...prev, type: e.target.value }))}
-                >
-                  <option value="text">텍스트</option>
-                  <option value="image">이미지</option>
-                  <option value="video">비디오</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder={
-                    attackItem.type === "text"
-                      ? "새 아이템을 입력하세요"
-                      : attackItem.type === "image"
-                      ? "이미지 URL을 입력하세요"
-                      : "유튜브 링크를 입력하세요"
-                  }
-                  value={attackItem.content}
-                  onChange={(e) => setAttackItem((prev) => ({ ...prev, content: e.target.value }))}
-                />
-              </form>
-              <button onClick={handleDropZoneClick}>공격!!</button>
-            </>
-            )
-          ) : (
-            <p>다른 사용자의 턴입니다. 기다려주세요.</p>
-          )}
-          {sharedItem && (
+          {sharedItem ? (
             <ul>
               {renderItemContent(sharedItem)}
             </ul>
+          ) : (
+            currentTurnUser === socket.current?.userId ? (
+              <>
+                <p>파일을 드래그 앤 드롭하거나,<br/>업로드할 파일을 선택하세요.</p>
+                <input type="file" onChange={handleFileSelect} />
+                <form
+                  className="add-item"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    await setUploadedItem(attackItem);
+                    setAttackItem({type: "text", content: ""});
+                  }}
+                >
+                  <select
+                    value={attackItem.type}
+                    onChange={(e) => setAttackItem((prev) => ({ ...prev, type: e.target.value }))}
+                  >
+                    <option value="text">텍스트</option>
+                    <option value="image">이미지</option>
+                    <option value="video">비디오</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder={
+                      attackItem.type === "text"
+                        ? "새 아이템을 입력하세요"
+                        : attackItem.type === "image"
+                        ? "이미지 URL을 입력하세요"
+                        : "유튜브 링크를 입력하세요"
+                    }
+                    value={attackItem.content}
+                    onChange={(e) => setAttackItem({ ...attackItem, content: e.target.value })}
+                  />
+                </form>
+                <button onClick={handleDropZoneClick}>공격!!</button>
+              </>
+            ) : (
+              <p>다른 유저가 아이템을 고르고 있어요...</p>
+            )
           )}
         </div>
 
         {/* 오른쪽 사용자 DB 아이템 목록 */}
         <div className="item-list">
-          <h3>User Items</h3>
+          <h3>내 아이템 목록</h3>
           <ul>
             {items?.map((item, index) => (
               <li key={index}>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(item.content)
-                      .then(() => alert("복사되었습니다!"))
-                      .catch((err) => alert("복사에 실패했습니다."));
-                  }}
-                >
-                  <FaCopy />
-                </button>
-                {item.type === "text" ? (
-                  <span>{item.content}</span>
-                ) : (
-                  <img src={item.content} alt="item" />
-                )}
+                <div style={{ display: "flex" }}>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(item.content)
+                        .then(() => alert("복사되었습니다!"))
+                        .catch((err) => alert("복사에 실패했습니다."));
+                    }}
+                  >
+                    <FaCopy />
+                  </button>
+                  {renderItemContent(item)}
+                </div>
               </li>
             ))}
           </ul>

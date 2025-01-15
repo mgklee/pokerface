@@ -57,6 +57,19 @@ const EmotionChart = ({ chartData, height }) => {
     { borderColor: "rgba(199, 199, 199, 1)", backgroundColor: "rgba(199, 199, 199, 0.2)" }, // Gray
   ];
 
+  chartData = chartData || {
+    timestamps: [],
+    emotions: {
+      happy: [],
+      sad: [],
+      angry: [],
+      surprised: [],
+      neutral: [],
+      disgusted: [],
+      fearful: [],
+    },
+  }
+
   const data = {
     labels: chartData.timestamps, // Time labels
     datasets: Object.keys(chartData.emotions).map((emotion, index) => {

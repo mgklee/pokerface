@@ -113,8 +113,6 @@ const EmotionRecognition = ({
   };
 
   const handleVideoPlay = () => {
-    if (!modelsLoaded) return;
-
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
@@ -157,7 +155,7 @@ const EmotionRecognition = ({
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (video && canvas) {
+    if (video && canvas && modelsLoaded) {
       canvas.width = video.width;
       canvas.height = video.height;
       handleVideoPlay();
