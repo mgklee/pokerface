@@ -88,9 +88,22 @@ const MyPage = ({ userId }) => {
       case "image":
         return <img src={item.content} alt="Item" className="item-image" />;
       case "video":
-        // Convert YouTube URL to embed URL
-        const videoId = item.content.split("v=")[1]?.split("&")[0]; // Extract video ID
-        const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        // Extract video ID from YouTube URLs (regular and Shorts)
+        let videoId = null;
+        let startTime = null;
+
+        if (item.content.includes("youtube.com/watch")) {
+          // Regular YouTube video URL
+          videoId = item.content.split("v=")[1]?.split("&")[0]; // Extract video ID
+          startTime = item.content.split("t=")[1];
+        } else if (item.content.includes("youtube.com/shorts")) {
+          // YouTube Shorts URL
+          videoId = item.content.split("/shorts/")[1]?.split("?")[0];
+        }
+
+        const embedUrl = videoId
+          ? `https://www.youtube.com/embed/${videoId}${startTime ? `?start=${startTime}` : ""}`
+          : null;
 
         if (!embedUrl) {
           return <p>유효하지 않은 YouTube 링크입니다.</p>; // Show error for invalid links

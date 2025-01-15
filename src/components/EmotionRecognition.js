@@ -2,7 +2,12 @@ import React, { useRef, useEffect, useState } from "react";
 import * as faceapi from "face-api.js";
 import EmotionChart from "./EmotionChart.js";
 
-const EmotionRecognition = ({ currentMission, missionProgress, setMissionProgress, setMissionCompleted }) => {
+const EmotionRecognition = ({
+  currentMission,
+  missionProgress,
+  setMissionProgress,
+  setMissionCompleted
+}) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const currentMissionRef = useRef(currentMission);
@@ -167,13 +172,12 @@ const EmotionRecognition = ({ currentMission, missionProgress, setMissionProgres
       justifyContent: "center",
       gap: "40px"
     }}>
-      <div style={{ position: "relative", textAlign: "center" }}>
+      <div style={{ position: "relative" }}>
         <video
           ref={videoRef}
           autoPlay
           muted
           onLoadedMetadata={handleLoadedMetadata}
-          style={{ border: "1px solid black" }}
         />
         <canvas
           ref={canvasRef}
@@ -184,7 +188,7 @@ const EmotionRecognition = ({ currentMission, missionProgress, setMissionProgres
           }}
         />
       </div>
-      <EmotionChart chartData={chartData} />
+      <EmotionChart chartData={chartData} height={360}/>
     </div>
   );
 };

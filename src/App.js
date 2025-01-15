@@ -81,12 +81,7 @@ const App = () => {
             <NaverCallback onSignIn={onSignIn}/>
           }
         />
-        <Route
-          path="/singleplay"
-          element={
-            <SinglePlayPage />
-          }
-        />
+        <Route path="/singleplay" element={<SinglePlayPage />}/>
         <Route path="/room/:roomId" element={<RoomPage />} />
       </Routes>
       {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} />}

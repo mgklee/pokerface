@@ -46,7 +46,7 @@ const emotionTranslations = {
   fearful: "두려움",
 };
 
-const EmotionChart = ({ chartData }) => {
+const EmotionChart = ({ chartData, height }) => {
   const colorPalette = [
     { borderColor: "rgba(255, 99, 132, 1)", backgroundColor: "rgba(255, 99, 132, 0.2)" }, // Red
     { borderColor: "rgba(54, 162, 235, 1)", backgroundColor: "rgba(54, 162, 235, 0.2)" }, // Blue
@@ -136,8 +136,8 @@ const EmotionChart = ({ chartData }) => {
   };
 
   return (
-    <div style={{ height: 360 }}>
-      <Line data={data} options={options} height={360}/>
+    <div style={{ height: height }}>
+      <Line data={data} options={options} height={height}/>
     </div>
   );
 };
