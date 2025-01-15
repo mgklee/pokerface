@@ -2,14 +2,18 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./JoinRoomModal.css";
 
-const JoinRoomModal = ({ onClose }) => {
+const JoinRoomModal = ({ onClose, userId }) => {
   const [roomCode, setRoomCode] = useState("");
   const navigate = useNavigate();
 
   const handleJoinRoom = () => {
     alert(`[${roomCode}] 방에 입장합니다.`);
     onClose(); // Close the modal after submission
-    navigate(`/room/${roomCode}`);
+    navigate(`/room/${roomCode}`, {
+      state: {
+        userId: userId
+      }
+    });
   };
 
   return (

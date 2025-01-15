@@ -2,16 +2,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
+  height: calc(100vh - 66.4px);
 }
 
 .layout-container {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 20px;
   width: 100%;
-  height: 80%;
+  height: 100%;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .video-container {
@@ -26,9 +27,13 @@
   /* transition: border 0.3s ease; */
 }
 
-/* .video-container.active-turn {
-  border: 2px solid green;
-} */
+.video-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
 
 #remote-videos video {
   width: 100%;

@@ -188,7 +188,7 @@ const EmotionRecognition = ({
           }}
         />
       </div>
-      <EmotionChart chartData={chartData} />
+      <EmotionChart chartData={chartData} height={360}/>
     </div>
   );
 };

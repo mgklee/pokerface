@@ -83,10 +83,10 @@ const App = () => {
           }
         />
         <Route path="/singleplay" element={<SinglePlayPage />}/>
-        <Route path="/room/:roomId" element={<RoomPage />} />
+        <Route path="/room/:roomId" element={<RoomPage />}/>
       </Routes>
       {isCreateRoomModalOpen && <CreateRoomModal onClose={closeCreateRoomModal} userId={userId}/>}
-      {isJoinRoomModalOpen && <JoinRoomModal onClose={closeJoinRoomModal} />}
+      {isJoinRoomModalOpen && <JoinRoomModal onClose={closeJoinRoomModal} userId={userId}/>}
     </Router>
   );
 };

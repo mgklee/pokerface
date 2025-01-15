@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import * as faceapi from "face-api.js";
 import EmotionChart from "../components/EmotionChart.js";
+import { PiTreeViewDuotone } from "react-icons/pi";
 import "./Room.css";
 
 const RoomPage = () => {
   const { roomId } = useParams();
   const localVideoRef = useRef(null);
+  const localCanvasRef = useRef(null);
   const videoRefs = useRef({});
-  const canvasRef = useRef(null);
   const canvasRefs = useRef({});
   const socket = useRef(null);
   const peerConnections = useRef({});
@@ -16,13 +17,15 @@ const RoomPage = () => {
   const navigate = useNavigate();
   const baseUrl = "https://172.10.7.34:5001";
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]); // 사용자 DB의 items 목록
   const [uploadedItem, setUploadedItem] = useState(null); // 업로드된 항목
   const [sharedItem, setSharedItem] = useState(null); // 공유된 항목
+  const [selectedFiles, setSelectedFiles] = useState([]); // 중앙 드래그 앤 드롭/업로드 목록
   const [currentTurnUser, setCurrentTurnUser] = useState(0);
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState([]);
   const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [chartDatabase, setChartDatabase] = useState({});
   const [chartData, setChartData] = useState({
     timestamps: [],
     emotions: {
@@ -36,19 +39,27 @@ const RoomPage = () => {
     },
   });
 
+  useEffect(() => {
+    if (!location.state) {
+      alert("올바르지 않은 접근입니다.");
+      navigate("/");
+    }
+  }, [location.state, navigate]);
+
   const maxParticipants = location.state?.participants;
   const userId = location.state?.userId;
-  const loggineduserId = userId ? userId : Math.random().toString(36).substring(7);
+  const localUserId = userId ? userId : Math.random().toString(36).substring(7);
 
   useEffect(() => {
     const fetchItems = async () => {
-      const response = await fetch(`${baseUrl}/users/${loggineduserId}/items`);
+      const response = await fetch(`${baseUrl}/users/${localUserId}/items`);
       const data = await response.json();
+      console.log(data);
       setItems(data);
     };
 
     fetchItems();
-  }, []);
+  }, [localUserId]);
 
   // 백엔드에서 실시간 웹캠 관리 (시작)
   useEffect(() => {
@@ -81,15 +92,15 @@ const RoomPage = () => {
 
     socket.current.onopen = async () => {
       console.log("WebSocket connected");
-      console.log("Resolved userId:", loggineduserId); // userId 로그 확인
-      socket.current.userId = loggineduserId;
+      console.log("Resolved userId:", localUserId); // userId 로그 확인
+      socket.current.userId = localUserId;
 
       if (socket.current.readyState === WebSocket.OPEN) {
         socket.current.send(
           JSON.stringify({
             type: "join-room",
             roomId,
-            userId: loggineduserId,
+            userId: localUserId,
             maxParticipants: maxParticipants,
           })
         );
@@ -263,64 +274,7 @@ const RoomPage = () => {
   };
   // 백엔드에서 실시간 웹캠 관리 (끝)
 
-  const handleVideoPlay = (video, canvas) => {
-    if (!modelsLoaded) return;
-
-    const detectEmotions = async () => {
-      const displaySize = { width: video.videoWidth, height: video.videoHeight };
-      faceapi.matchDimensions(canvas, displaySize);
-
-      setInterval(async () => {
-        const detections = await faceapi
-          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-          .withFaceLandmarks()
-          .withFaceExpressions();
-
-        if (detections) {
-          const resizedDetections = faceapi.resizeResults(detections, displaySize);
-
-          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-          faceapi.draw.drawDetections(canvas, resizedDetections);
-
-          const expressions = detections.expressions;
-          const currentTime = new Date().toLocaleTimeString();
-
-          setChartData((prevData) => ({
-            timestamps: [...prevData.timestamps, currentTime].slice(-20),
-            emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
-              acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
-              return acc;
-            }, {}),
-          }));
-        }
-      }, 100);
-    };
-
-    detectEmotions();
-  };
-
-  const handleLoadedMetadata = (_videoRef, _canvasRef) => {
-    const video = _videoRef.current;
-    const canvas = _canvasRef.current;
-
-    if (video && canvas) {
-      canvas.width = video.width;
-      canvas.height = video.height;
-      handleVideoPlay(video, canvas);
-    }
-  };
-
-   // 드래그앤 드롭 (시작)
-  // useEffect(() => {
-  //   // 여기서 사용자 DB에서 items 목록을 불러옴 (예시 데이터)
-  //   const mockItems = [
-  //     { type: "text", content: "논리적인 사람이 총을 쏘면? 타당타당" },
-  //     { type: "text", content: "Sample Text 2" },
-  //     { type: "image", content: "https://www.youtube.com" },
-  //   ];
-  //   setItems(mockItems);
-  // }, []);
-
+  // 드래그앤 드롭 (시작)
   // 공통 파일 처리 함수
   const processFile = (file) => {
     if (file.type.startsWith("image/")) {
@@ -403,78 +357,154 @@ const RoomPage = () => {
   };
   // 드래그앤 드롭 (끝)
 
+  const handleVideoPlay = (video, canvas, userId) => {
+    if (!modelsLoaded) return;
+
+    const detectEmotions = async () => {
+      const displaySize = { width: video.videoWidth, height: video.videoHeight };
+      faceapi.matchDimensions(canvas, displaySize);
+
+      setInterval(async () => {
+        const detections = await faceapi
+          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks()
+          .withFaceExpressions();
+
+        if (detections) {
+          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+
+          canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+          faceapi.draw.drawDetections(canvas, resizedDetections);
+
+          const expressions = detections.expressions;
+          const currentTime = new Date().toLocaleTimeString();
+
+          if (userId) {
+            setChartDatabase((prevDatabase) => {
+              console.log('ang');
+              if(!prevDatabase[userId]) {
+                prevDatabase[userId] = {
+                  timestamps: [],
+                  emotions: {
+                    happy: [],
+                    sad: [],
+                    angry: [],
+                    surprised: [],
+                    neutral: [],
+                    disgusted: [],
+                    fearful: [],
+                  },
+                };
+              }
+
+              const prevData = prevDatabase[userId];
+              console.log(prevData);
+              const { userId, ...updatedDatabase } = prevDatabase;
+
+              return {
+                ...updatedDatabase,
+                userId: {
+                  timestamps: [...prevData.timestamps, currentTime].slice(-20),
+                  emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
+                    acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
+                    return acc;
+                  }, {}),
+                }
+              };
+            });
+          } else {
+            setChartData((prevData) => ({
+              timestamps: [...prevData.timestamps, currentTime].slice(-20),
+              emotions: Object.keys(prevData.emotions).reduce((acc, emotion) => {
+                acc[emotion] = [...prevData.emotions[emotion], expressions[emotion] || 0].slice(-20);
+                return acc;
+              }, {}),
+            }));
+          }
+        }
+      }, 100);
+    };
+
+    detectEmotions();
+  };
+
+  const handleLoadedMetadata = (_videoRef, _canvasRef, userId) => {
+    const video = _videoRef.current;
+    const canvas = _canvasRef.current;
+
+    if (video && canvas) {
+      canvas.width = video.width;
+      canvas.height = video.height;
+      handleVideoPlay(video, canvas, userId);
+    }
+  };
+
   return (
     <div className="room-page">
-      <div
-        className={`video-container grid-${Math.min(
-        4,
-        Math.max(1, remoteStreams.length)
-        )}`}
-      >
-        <div style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "40px"
-        }}>
-          <div style={{ position: "relative" }}>
-            <video
-              ref={localVideoRef}
-              autoPlay
-              muted
-              onLoadedMetadata={() => handleLoadedMetadata(localVideoRef, canvasRef)}
-            />
-            <canvas
-              ref={canvasRef}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                border: "1px solid black",
-              }}
-            />
+      <div className="layout-container">
+        {/* 왼쪽 비디오 영역 */}
+        <div className="video-container">
+          <div className="video-item">
+            <div style={{ position: "relative" }}>
+              <video
+                ref={localVideoRef}
+                autoPlay
+                muted
+                onLoadedMetadata={() => handleLoadedMetadata(localVideoRef, localCanvasRef, null)}
+              />
+              <canvas
+                ref={localCanvasRef}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                }}
+              />
+            </div>
+            <EmotionChart chartData={chartData} height={270} />
           </div>
-          <EmotionChart chartData={chartData} />
-        </div>
-        <div id="remote-videos">
-          {remoteStreams.map(({ userId, stream }) => {
-            if (!videoRefs.current[userId]) {
-              videoRefs.current[userId] = React.createRef();
-            }
+          <div id="remote-videos">
+            {remoteStreams.map(({ userId, stream }) => {
+              if (!videoRefs.current[userId]) {
+                videoRefs.current[userId] = React.createRef();
+              }
 
-            if (!canvasRefs.current[userId]) {
-              canvasRefs.current[userId] = React.createRef();
-            }
+              if (!canvasRefs.current[userId]) {
+                canvasRefs.current[userId] = React.createRef();
+              }
 
-            return (
-              <div key={userId} style={{ position: "relative" }}>
-                <video
-                  ref={(video) => {
-                    if (video) {
-                      video.srcObject = stream;
-                      videoRefs.current[userId].current = video;
-                    }
-                  }}
-                  autoPlay
-                  muted
-                  onLoadedMetadata={() => handleLoadedMetadata(videoRefs.current[userId], canvasRefs.current[userId])}
-                />
-                <canvas
-                  ref={(canvas) => {
-                    if (canvas) {
-                      canvasRefs.current[userId].current = canvas;
-                    }
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                  }}
-                />
-              </div>
-            );
-          })}
+              return (
+                <div key={userId} className="video-item">
+                  <div style={{ position: "relative" }}>
+                    <video
+                      ref={(video) => {
+                        if (video) {
+                          video.srcObject = stream;
+                          videoRefs.current[userId].current = video;
+                        }
+                      }}
+                      autoPlay
+                      muted
+                      onLoadedMetadata={() => handleLoadedMetadata(videoRefs.current[userId], canvasRefs.current[userId], userId)}
+                    />
+                    <canvas
+                      ref={(canvas) => {
+                        if (canvas) {
+                          canvasRefs.current[userId].current = canvas;
+                        }
+                      }}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                      }}
+                    />
+                    {/* <EmotionChart chartData={chartDatabase[userId]} /> */}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* 가운데 드래그 앤 드롭 및 업로드 영역 */}
@@ -519,7 +549,7 @@ const RoomPage = () => {
               </li>
             ))}
           </ul>
-        </div>
+          </div>
       </div>
     </div>
   );
