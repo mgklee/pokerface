@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { FaCopy } from "react-icons/fa";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import * as faceapi from "face-api.js";
 import EmotionChart from "../components/EmotionChart.js";
@@ -17,6 +18,7 @@ const RoomPage = () => {
   const navigate = useNavigate();
   const baseUrl = "https://172.10.7.34:5001";
 
+  const [attackItem, setAttackItem] = useState({ type: "text", content: "" }); // 공격할 파일
   const [items, setItems] = useState([]); // 사용자 DB의 items 목록
   const [uploadedItem, setUploadedItem] = useState(null); // 업로드된 항목
   const [sharedItem, setSharedItem] = useState(null); // 공유된 항목
@@ -274,6 +276,47 @@ const RoomPage = () => {
   };
   // 백엔드에서 실시간 웹캠 관리 (끝)
 
+  const renderItemContent = (item) => {
+    switch (item.type) {
+      case "image":
+        return <img src={item.content} alt="Item" className="item-image" />;
+      case "video":
+        // Extract video ID from YouTube URLs (regular and Shorts)
+        let videoId = null;
+        let startTime = null;
+
+        if (item.content.includes("youtube.com/watch")) {
+          // Regular YouTube video URL
+          videoId = item.content.split("v=")[1]?.split("&")[0]; // Extract video ID
+          startTime = item.content.split("t=")[1];
+        } else if (item.content.includes("youtube.com/shorts")) {
+          // YouTube Shorts URL
+          videoId = item.content.split("/shorts/")[1]?.split("?")[0];
+        }
+
+        const embedUrl = videoId
+          ? `https://www.youtube.com/embed/${videoId}${startTime ? `?start=${startTime}` : ""}`
+          : null;
+
+        if (!embedUrl) {
+          return <p>유효하지 않은 YouTube 링크입니다.</p>; // Show error for invalid links
+        }
+
+        return (
+          <iframe
+            width="560"
+            height="315"
+            src={embedUrl}
+            title="YouTube video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        );
+      default:
+        return <p>{item.content}</p>;
+    }
+  };
+
   // 드래그앤 드롭 (시작)
   // 공통 파일 처리 함수
   const processFile = (file) => {
@@ -350,9 +393,9 @@ const RoomPage = () => {
           JSON.stringify({ type: "end-turn" })
         );
         setSharedItem(null);
-      }, 10000);
+      }, uploadedItem?.type === "video" ? 60000 : 10000);
     } else {
-      alert("공유할 항목이 없습니다.");
+      alert("공격할 항목이 없습니다.");
     }
   };
   // 드래그앤 드롭 (끝)
@@ -485,7 +528,7 @@ const RoomPage = () => {
                       }}
                       autoPlay
                       muted
-                      onLoadedMetadata={() => handleLoadedMetadata(videoRefs.current[userId], canvasRefs.current[userId], userId)}
+                      // onLoadedMetadata={() => handleLoadedMetadata(videoRefs.current[userId], canvasRefs.current[userId], userId)}
                     />
                     <canvas
                       ref={(canvas) => {
@@ -514,23 +557,50 @@ const RoomPage = () => {
           onDrop={currentTurnUser === socket.current?.userId ? handleFileDrop : (e) => e.preventDefault()}
         >
           {currentTurnUser === socket.current?.userId ? (
+            !sharedItem && (
             <>
               <p>Drag and drop files here, or select files to upload.</p>
               <div>
                 <input type="file" onChange={handleFileSelect} />
               </div>
-              <button onClick={handleDropZoneClick}>확인</button>
+              <form
+                className="add-item"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setUploadedItem(attackItem);
+                  setAttackItem({type: "text", content: ""});
+                }}
+              >
+                <select
+                  value={attackItem.type}
+                  onChange={(e) => setAttackItem((prev) => ({ ...prev, type: e.target.value }))}
+                >
+                  <option value="text">텍스트</option>
+                  <option value="image">이미지</option>
+                  <option value="video">비디오</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder={
+                    attackItem.type === "text"
+                      ? "새 아이템을 입력하세요"
+                      : attackItem.type === "image"
+                      ? "이미지 URL을 입력하세요"
+                      : "유튜브 링크를 입력하세요"
+                  }
+                  value={attackItem.content}
+                  onChange={(e) => setAttackItem((prev) => ({ ...prev, content: e.target.value }))}
+                />
+              </form>
+              <button onClick={handleDropZoneClick}>공격!!</button>
             </>
+            )
           ) : (
             <p>다른 사용자의 턴입니다. 기다려주세요.</p>
           )}
           {sharedItem && (
             <ul>
-              {sharedItem.type === "image" ? (
-                <img src={sharedItem.content} alt="Shared item" style={{ width: "100px" }} />
-              ) : (
-                <p>{sharedItem.content}</p>
-              )}
+              {renderItemContent(sharedItem)}
             </ul>
           )}
         </div>
@@ -541,6 +611,15 @@ const RoomPage = () => {
           <ul>
             {items?.map((item, index) => (
               <li key={index}>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(item.content)
+                      .then(() => alert("복사되었습니다!"))
+                      .catch((err) => alert("복사에 실패했습니다."));
+                  }}
+                >
+                  <FaCopy />
+                </button>
                 {item.type === "text" ? (
                   <span>{item.content}</span>
                 ) : (
