@@ -12,10 +12,38 @@ const RoomPage = () => {
   const [items, setItems] = useState([]);
   const [uploadedItem, setUploadedItem] = useState(null); // 업로드된 항목
   const [sharedItem, setSharedItem] = useState(null); // 공유된 항목
+  const [currentTurnUser, setCurrentTurnUser] = useState(0);
+
   const location = useLocation();
   const navigate = useNavigate();
 
   const maxParticipants = location.state?.participants;
+  const userId = location.state?.userId;
+  const loggineduserId = userId ? userId : Math.random().toString(36).substring(7);
+
+  useEffect(() => {
+    const fetchUserItems = async () => {
+      try {
+        const response = await fetch(`https://172.10.7.34:5001/auth/user-items/${loggineduserId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          setItems(data.items); // 사용자 아이템 설정
+        } else {
+          console.error("Failed to fetch items:", response.statusText);
+        }
+      } catch (err) {
+        console.error("Error fetching user items:", err);
+      }
+    };
+  
+    fetchUserItems();
+  }, [loggineduserId]);
 
   // 백엔드에서 실시간 웹캠 관리 (시작)
   useEffect(() => {
@@ -42,25 +70,30 @@ const RoomPage = () => {
 
     socket.current = new WebSocket("wss://172.10.7.34:5001");
 
-    socket.current.onopen = () => {
+    socket.current.onopen = async () => {
       console.log("WebSocket connected");
-      const userId = Math.random().toString(36).substring(7);
-      socket.current.userId = userId;
+      console.log("Resolved userId:", loggineduserId); // userId 로그 확인
+      socket.current.userId = loggineduserId;
 
-      socket.current.send(
-        JSON.stringify({
-          type: "join-room",
-          roomId,
-          userId,
-          maxParticipants: maxParticipants,
-        })
-      );
+      if (socket.current.readyState === WebSocket.OPEN) {
+        socket.current.send(
+          JSON.stringify({
+            type: "join-room",
+            roomId,
+            userId: loggineduserId,
+            maxParticipants: maxParticipants,
+          })
+        );
+      }
     };
 
     socket.current.onmessage = async (event) => {
       const message = JSON.parse(event.data);
 
       switch (message.type) {
+        case "turn-update":
+          setCurrentTurnUser(message.currentTurn);
+          break;
         case "shared-item":
           setSharedItem(message.item);
           const remainingTime = message.expireTime - Date.now();
@@ -203,15 +236,15 @@ const RoomPage = () => {
   // 백엔드에서 실시간 웹캠 관리 (끝)
 
   // 드래그앤 드롭 (시작)
-  useEffect(() => {
-    // 여기서 사용자 DB에서 items 목록을 불러옴 (예시 데이터)
-    const mockItems = [
-      { type: "text", content: "논리적인 사람이 총을 쏘면? 타당타당" },
-      { type: "text", content: "Sample Text 2" },
-      { type: "image", content: "https://www.youtube.com" },
-    ];
-    setItems(mockItems);
-  }, []);
+  // useEffect(() => {
+  //   // 여기서 사용자 DB에서 items 목록을 불러옴 (예시 데이터)
+  //   const mockItems = [
+  //     { type: "text", content: "논리적인 사람이 총을 쏘면? 타당타당" },
+  //     { type: "text", content: "Sample Text 2" },
+  //     { type: "image", content: "https://www.youtube.com" },
+  //   ];
+  //   setItems(mockItems);
+  // }, []);
 
   // 공통 파일 처리 함수
 const processFile = (file) => {
@@ -238,10 +271,10 @@ const handleFileDrop = (e) => {
   
   // 업로드 제한 확인
   const items = e.dataTransfer?.items;
-  if (!items || items.length > 1 || uploadedItem) {
-    alert("하나의 항목만 업로드할 수 있습니다.");
-    return;
-  }
+  // if (!items || items.length > 1 || uploadedItem) {
+  //   alert("하나의 항목만 업로드할 수 있습니다.");
+  //   return;
+  // }
 
   const item = items[0];
   if (item.kind === "file") {
@@ -260,10 +293,10 @@ const handleFileDrop = (e) => {
 const handleFileSelect = (e) => {
   // 업로드 제한 확인
   const files = e.target?.files;
-  if (!files || files.length > 1 || uploadedItem) {
-    alert("하나의 항목만 업로드할 수 있습니다.");
-    return;
-  }
+  // if (!files || files.length > 1 || uploadedItem) {
+  //   alert("하나의 항목만 업로드할 수 있습니다.");
+  //   return;
+  // }
 
   const file = files[0];
   processFile(file); // 파일 처리
@@ -284,6 +317,9 @@ const handleFileSelect = (e) => {
       setSharedItem(uploadedItem);
       setUploadedItem(null); // 업로드된 항목 초기화
       setTimeout(() => {
+        socket.current.send(
+          JSON.stringify({ type: "end-turn" })
+        );
         setSharedItem(null);
       }, 10000);
     } else {
@@ -318,27 +354,35 @@ const handleFileSelect = (e) => {
         <div
           className="drop-area"
           onDragOver={(e) => e.preventDefault()}
-          onDrop={handleFileDrop}
+          onDrop={currentTurnUser === socket.current?.userId ? handleFileDrop : (e) => e.preventDefault()}
         >
-          <p>Drag and drop files here, or select files to upload.</p>
-          <div>
-            <input type="file" onChange={handleFileSelect} />
-          </div>
-          <button onClick={handleDropZoneClick}>확인</button>
-          <ul>
-            {sharedItem?.type === "image" ? (
-              <img src={sharedItem?.content} alt="Shared item" style={{ width: "100px" }} />
-            ) : (
-              <p>{sharedItem?.content}</p>
-            )}
-          </ul>
+          {currentTurnUser === socket.current?.userId ? (
+            <>
+              <p>Drag and drop files here, or select files to upload.</p>
+              <div>
+                <input type="file" onChange={handleFileSelect} />
+              </div>
+              <button onClick={handleDropZoneClick}>확인</button>
+            </>
+          ) : (
+            <p>다른 사용자의 턴입니다. 기다려주세요.</p>
+          )}
+          {sharedItem && (
+            <ul>
+              {sharedItem.type === "image" ? (
+                <img src={sharedItem.content} alt="Shared item" style={{ width: "100px" }} />
+              ) : (
+                <p>{sharedItem.content}</p>
+              )}
+            </ul>
+          )}
         </div>
 
         {/* 오른쪽 사용자 DB 아이템 목록 */}
         <div className="item-list">
           <h3>User Items</h3>
           <ul>
-            {items.map((item, index) => (
+            {items?.map((item, index) => (
               <li key={index}>
                 {item.type === "text" ? (
                   <span>{item.content}</span>

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./CreateRoomModal.css";
 
-const CreateRoomModal = ({ onClose }) => {
+const CreateRoomModal = ({ onClose, userId }) => {
   const [participants, setParticipants] = useState(2);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleIncrement = () => {
     if (participants < 6) {
@@ -19,10 +20,11 @@ const CreateRoomModal = ({ onClose }) => {
   };
 
   const handleCreateRoom = () => {
+    console.log("userId:", userId);
     const randDomain = Math.random().toString(36).substring(7);
     alert(`${participants}명 방을 만들었습니다!`);
     onClose(); // Close the modal after navigation
-    navigate(`/room/${randDomain}`, {state: {participants: participants}});
+    navigate(`/room/${randDomain}`, {state: {participants: participants, userId: userId}});
   };
 
   return (

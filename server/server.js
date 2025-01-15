@@ -20,6 +20,7 @@ const options = {
 const app = express();
 const rooms = {}; // 방별 사용자 관리
 const maxtime = 10;
+let roomTurns = {};
 app.use(cors());
 app.use(express.json());
 const httpsServer = https.createServer(options, app);
@@ -82,6 +83,26 @@ wss.on("connection", (socket) => {
           }
         });
 
+        // 방에 처음 사용자가 들어오면 턴을 설정
+        if (rooms[currentRoom].participants.length === 1) {
+          roomTurns[currentRoom] = currentUser; // 첫 번째 사용자에게 턴 할당
+          socket.send(JSON.stringify({ type: "turn-update", currentTurn: currentUser }));
+        }
+        break;
+      
+      case "end-turn":
+        const roomParticipants = rooms[currentRoom].participants;
+        const currentIndex = roomParticipants.findIndex((p) => p.userId === currentUser);
+      
+        // 다음 턴 계산
+        const nextIndex = (currentIndex + 1) % roomParticipants.length;
+        const nextTurnUser = roomParticipants[nextIndex].userId;
+        
+        // 턴 정보 업데이트 및 알림
+        roomTurns[currentRoom] = nextTurnUser;
+        roomParticipants.forEach((participant) => {
+          participant.socket.send(JSON.stringify({ type: "turn-update", currentTurn: nextTurnUser }));
+        });
         break;
 
       case "offer":

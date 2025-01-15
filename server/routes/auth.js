@@ -19,6 +19,22 @@ router.get("/validate-token", (req, res) => {
   });
 });
 
+router.get("/user-items/:providerId", async (req, res) => {
+  const { providerId } = req.params;
+
+  try {
+    // providerId로 사용자 검색
+    const user = await User.findOne({ providerId });
+
+    // 사용자 items 반환
+    if(user)  res.json({ items: user.items });
+    else res.json({ items: null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.post("/signin", async (req, res) => {
   const { providerId, password } = req.body;
 

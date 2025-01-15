@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import './NavBar.css';
 
-const NavBar = ({ isSignedIn, setIsSignedIn, nickname, openCreateRoomModal, openJoinRoomModal }) => {
+const NavBar = ({ isSignedIn, setIsSignedIn, nickname, openCreateRoomModal, openJoinRoomModal, userId }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,11 +31,11 @@ const NavBar = ({ isSignedIn, setIsSignedIn, nickname, openCreateRoomModal, open
     return null;
   };
 
-  const renderSignedInLinks = () => {
+  const renderSignedInLinks = (userId) => {
     if (isSignedIn) {
       return (
         <>
-          <button className="button" onClick={openCreateRoomModal}>
+          <button className="button" onClick={openCreateRoomModal} state={{userId}}>
             방 만들기
           </button>
           <button className="button" onClick={openJoinRoomModal}>
@@ -54,7 +54,7 @@ const NavBar = ({ isSignedIn, setIsSignedIn, nickname, openCreateRoomModal, open
       </button>
       <div className="nav-links">
         {renderNavLinks()}
-        {renderSignedInLinks()}
+        {renderSignedInLinks(userId)}
       </div>
       <div className="nav-items">
         {isSignedIn ? (
