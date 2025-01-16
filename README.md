@@ -1,70 +1,88 @@
-# Getting Started with Create React App
+# 1. 개요
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**“Poker Face: 속마음을 나타내지 아니하고 무표정하게 있는 얼굴.”**
 
-## Available Scripts
+## 1.1. 프로젝트 소개
 
-In the project directory, you can run:
+### 📗 BACKGROUND
 
-### `npm start`
+우리는 툭하면 웃고, 툭하면 울고, 툭하면 놀래고, 툭하면 혐오하는, 도파민의 시대에 살고 있습니다. 그런 시대에서.. 우리는 평정심을 유지하는 방법을 배워야 합니다.
 
-Runs the app in the development mode.\
-Open [http://172.10.7.34:3000](http://172.10.7.34:3000) to view it in your browser.
+### 📗 GOAL
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+실시간으로 표정을 분석하는 `face-api` 를 이용하여 내 표정을 다양하게 만들 수 있습니다. 또한, 싱글플레이와 멀티플레이를 통해 다양한 게임을 즐길 수 있습니다.
 
-### `npm test`
+## 1.2. Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Front-End:** React
+- **Back-End:** ExpressJs
+- **Database:** MongoDB
+- **IDE:** VSCode
+- **Version Control:** GitHub
 
-### `npm run build`
+# 2. 팀원 소개
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 이동욱
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- 연세대학교 신소재공학과 21학번
+- https://github.com/gari0525
+- BE 담당
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 이명규
 
-### `npm run eject`
+- KAIST 전산학부 20학번
+- https://github.com/mgklee
+- FE 담당
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# 3. 기능 소개
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 3.0. 메인 화면
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 3.0.1. 로그인 전
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- 상단 바의 로그인 버튼이나 화면 중앙의 **로그인**을 클릭하면 로그인 화면으로 이동합니다.
+- 로그인 전에는 혼자 놀기(싱글 플레이)만 가능합니다.
 
-## Learn More
+### 3.0.2. 로그인 후
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- 로그인 후 방 만들기와 참가하기 등 멀티플레이 게임에 접속할 수 있습니다.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- 내 아이템을 메인 화면에서 추가/수정/삭제할 수 있습니다.
 
-### Code Splitting
+## 3.1. 로그인/회원가입 화면
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- 카카오, 네이버, 일반 로그인 및 회원가입을 구현했습니다.
 
-### Analyzing the Bundle Size
+## 3.2. 싱글플레이 화면
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- `face-api` 를 통해 현재 얼굴에 대한 7가지 표정을 실시간으로 인식합니다. (행복, 슬픔, 두려움, 혐오, 화남, 중립, 역겨움)
+- 2~6초 / 7가지 표정 / 일정 % 수치를 랜덤으로 골라 미션을 제작했습니다.
 
-### Making a Progressive Web App
+- 미션을 성공적으로 끝내면 **미션 성공!** 문구가 뜹니다. (다음 버튼을 누르면 미션이 새로 바뀝니다.)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 3.3. 멀티플레이 화면
 
-### Advanced Configuration
+### 3.3.1 방 만들기
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- 방 만들기를 통해 2~4인 방을 만들면 랜덤한 `roomId`와 함께 방이 생성됩니다.
 
-### Deployment
+### 3.3.2 참가하기
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- 생성된 방의 `roomId`를 입력하면 해당 방으로 들어갑니다.
+- 올바르지 않은 접근은 차단됩니다.
 
-### `npm run build` fails to minify
+### 3.3.3. 게임 방
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- 파일을 드래그 앤 드롭하거나, 직접 선택 또는 내 아이템 목록에서 복사하여 상대를 공격할 수 있습니다.
+
+# 4. 후기
+
+## 이동욱
+
+> 1주차 때에는 앱, 2주차 때에는 웹 FE, 그리고 이번 주는 웹 BE를 담당했습니다. FE와 BE를 모두 해본 결과 각자만의 고충이 있다는 것을 느꼈다. 카카오, 네이버 로그인과 웹소켓(특히)에 시간을 매우 많이 쓴 것 같은데, 다행히 처음 계획했던 만큼은 이뤄낸 것 같아서 뿌듯하다. 개인적으론 BE가 가장 힘들었지만, 더욱 열심히 공부해서 풀스택 개발자가 되기 위해 계속 발전할 것이다. 모두 수고했다!
+> 
+
+## 이명규
+
+> React로 정말 많은 일을 할 수 있음을 배웠습니다. 2인 3각처럼 프론트와 백이 서로 발맞춰서 나아가야 함을 느꼈습니다.
+>
